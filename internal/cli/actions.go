@@ -122,7 +122,7 @@ func getConfigVars(mode, version string) map[string]interface{} {
 	setVarFromEnv(vars, "oidc_auth_url", "OIDC_AUTH_URL", "https://accounts.google.com/o/oauth2/v2/auth")
 	setVarFromEnv(vars, "oidc_token_url", "OIDC_TOKEN_URL", "https://oauth2.googleapis.com/token")
 	setVarFromEnv(vars, "oidc_userinfo_url", "OIDC_USERINFO_URL", "https://openidconnect.googleapis.com/v1/userinfo")
-	setVarFromEnv(vars, "oidc_issuer", "OIDC_ISSUER", "https://accounts.google.com")	// Безпека
+	setVarFromEnv(vars, "oidc_issuer", "OIDC_ISSUER", "https://accounts.google.com") // Безпека
 	setVarFromEnv(vars, "jwt_signing_key", "JWT_SIGNING_KEY", "dev-jwt-secret-key-change-in-production")
 	setVarFromEnv(vars, "session_secret", "SESSION_SECRET", "dev-session-secret-change-in-production")
 
