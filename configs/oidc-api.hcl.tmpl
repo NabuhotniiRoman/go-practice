@@ -1,0 +1,130 @@
+# OIDC API Server Configuration Template
+# Цей файл є шаблоном для генерації конфігурації
+
+# Налаштування сервера
+server {
+  host = {{var "api_server_host" localhost true}}
+  port = {{var "api_server_port" 8080 true}}
+  
+  # Режим роботи: development, staging, production
+  environment = {{var "environment" "local" true}}
+  
+  # Налаштування логування
+  log_level = {{var "log_level" "debug" true}}
+  log_format = {{var "log_format" "json" true}}
+  
+  # Таймаути
+  read_timeout  = {{var "server_read_timeout" "30s" true}}
+  write_timeout = {{var "server_write_timeout" "30s" true}}
+  idle_timeout  = {{var "server_idle_timeout" "120s" true}}
+}
+
+# Налаштування бази даних
+database {
+  driver   = {{var "db_driver" "postgres" true}}
+  host     = {{var "db_host" "localhost" true}}
+  port     = {{var "db_port" 5432 true}}
+  name     = {{var "db_name" "go_practice" true}}
+  user     = {{var "db_user" "oidc_api_user" true}}
+  password = {{var "db_password" "" false}}
+  
+  # SSL налаштування
+  ssl_mode = {{var "db_ssl_mode" "disable" true}}
+  
+  # Пул з'єднань
+  max_open_connections = {{var "db_max_open_connections" 25 true}}
+  max_idle_connections = {{var "db_max_idle_connections" 5 true}}
+  connection_max_lifetime = {{var "db_connection_max_lifetime" "5m" true}}
+}
+
+# OIDC конфігурація
+oidc {
+  # Налаштування провайдера
+  provider {
+    issuer_url    = {{var "oidc_issuer_url" "" false}}
+    client_id     = {{var "oidc_client_id" "" false}}
+    client_secret = {{var "oidc_client_secret" "" false}}
+    auth_url      = {{var "oidc_auth_url" "" false}}
+    token_url     = {{var "oidc_token_url" "" false}}
+    userinfo_url  = {{var "oidc_userinfo_url" "" false}}
+    issuer        = {{var "oidc_issuer" "" false}}
+
+    # Redirect URLs
+    redirect_url = {{var "oidc_redirect_url" "http://localhost:8080/auth/callback" true}}
+    post_logout_redirect_url = {{var "oidc_post_logout_url" "http://localhost:8080" true}}
+  }
+  
+  # Налаштування токенів
+  tokens {
+    # JWT підпис
+    signing_key = {{var "jwt_signing_key" "dev-jwt-secret-key-change-in-production" true}}
+    signing_method = {{var "jwt_signing_method" "HS256" true}}
+    
+    # Час життя токенів
+    access_token_duration  = {{var "access_token_duration" "1h" true}}
+    refresh_token_duration = {{var "refresh_token_duration" "24h" true}}
+    id_token_duration      = {{var "id_token_duration" "1h" true}}
+  }
+  
+  # Scopes
+  scopes = [
+    "openid",
+    "profile", 
+    "email"
+  ]
+}
+
+# Налаштування безпеки
+security {
+  # CORS
+  cors {
+    allowed_origins = [
+      {{var "cors_allowed_origins" "http://localhost:3000,http://localhost:8080" true}}
+    ]
+    
+    allowed_methods = [
+      "GET",
+      "POST", 
+      "PUT",
+      "DELETE",
+      "OPTIONS"
+    ]
+    
+    allowed_headers = [
+      "Content-Type",
+      "Authorization",
+      "X-Requested-With"
+    ]
+    
+    allow_credentials = {{var "cors_allow_credentials" true true}}
+    max_age = {{var "cors_max_age" 3600 true}}
+  }
+  
+  # Rate limiting
+  rate_limit {
+    enabled = {{var "rate_limit_enabled" true true}}
+    requests_per_minute = {{var "rate_limit_requests_per_minute" 60 true}}
+    burst = {{var "rate_limit_burst" 10 true}}
+  }
+  
+  # Session
+  session {
+    secret = {{var "session_secret" "dev-session-secret-change-in-production" true}}
+    max_age = {{var "session_max_age" 3600 true}}
+    secure = {{var "session_secure" false true}}
+    http_only = {{var "session_http_only" true true}}
+  }
+}
+
+# Налаштування Redis (для сесій та кешування)
+redis {
+  enabled = {{var "redis_enabled" false true}}
+  host    = {{var "redis_host" "localhost" true}}
+  port    = {{var "redis_port" 6379 true}}
+  password = {{var "redis_password" "" false}}
+  database = {{var "redis_database" 0 true}}
+  
+  # Пул з'єднань
+  max_retries = {{var "redis_max_retries" 3 true}}
+  pool_size   = {{var "redis_pool_size" 10 true}}
+}

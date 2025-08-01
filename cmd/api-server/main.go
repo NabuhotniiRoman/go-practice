@@ -1,0 +1,22 @@
+// API Server - простий REST API з OIDC endpoints
+package main
+
+import (
+	"log"
+	"os"
+
+	"go-practice/internal/build"
+	"go-practice/internal/cli"
+)
+
+func main() {
+	// Використовуємо CLI для всіх команд
+	app := cli.NewApp()
+	app.Name = "OIDC API Server"
+	app.Version = build.Version
+	app.Usage = "OIDC API Server with configuration management"
+
+	if err := app.Run(os.Args); err != nil {
+		log.Fatal(err)
+	}
+}

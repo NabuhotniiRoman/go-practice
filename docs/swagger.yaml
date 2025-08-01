@@ -1,0 +1,368 @@
+definitions:
+  models.OIDCLoginResponse:
+    properties:
+      auth_url:
+        type: string
+      session_id:
+        type: string
+      state:
+        type: string
+    type: object
+  models.RegisterRequest:
+    properties:
+      email:
+        type: string
+      name:
+        minLength: 2
+        type: string
+      password:
+        minLength: 6
+        type: string
+    required:
+    - email
+    - name
+    - password
+    type: object
+  models.RegisterResponse:
+    properties:
+      auth_url:
+        description: для автоматичного входу після реєстрації
+        type: string
+      email:
+        type: string
+      message:
+        type: string
+      name:
+        type: string
+      user_id:
+        type: string
+    type: object
+  models.Token:
+    properties:
+      access_token:
+        type: string
+      expires_at:
+        type: string
+      expires_in:
+        type: integer
+      id_token:
+        type: string
+      refresh_token:
+        type: string
+      scope:
+        type: string
+      token_type:
+        type: string
+    type: object
+  models.TokenRefreshRequest:
+    properties:
+      refresh_token:
+        type: string
+    required:
+    - refresh_token
+    type: object
+info:
+  contact: {}
+paths:
+  /api/v1/profile:
+    get:
+      description: Повертає профіль користувача
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: User Profile
+      tags:
+      - api
+    put:
+      consumes:
+      - application/json
+      description: Оновлює профіль користувача (тільки name, picture)
+      parameters:
+      - description: Дані для оновлення профілю
+        in: body
+        name: updateData
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update Profile
+      tags:
+      - api
+  /api/v1/protected:
+    get:
+      description: Повертає захищені дані (потребує автентифікацію)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Protected Data
+      tags:
+      - api
+  /api/v1/public:
+    get:
+      description: Повертає публічні дані (без автентифікації)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Public Data
+      tags:
+      - api
+  /api/v1/user-data:
+    get:
+      description: Повертає розширені дані користувача
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: User Data
+      tags:
+      - api
+  /auth/callback:
+    get:
+      consumes:
+      - application/json
+      description: Обробляє callback від OIDC провайдера (Authorization Code Flow)
+      parameters:
+      - description: Authorization Code
+        in: query
+        name: code
+        required: true
+        type: string
+      - description: State
+        in: query
+        name: state
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Token'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+      summary: OIDC Callback
+      tags:
+      - auth
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Ініціює OIDC Authorization Code Flow (Google Login)
+      parameters:
+      - description: Redirect URI
+        in: query
+        name: redirect_uri
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.OIDCLoginResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: OIDC Login
+      tags:
+      - auth
+  /auth/logout:
+    post:
+      consumes:
+      - application/json
+      description: Завершує сесію користувача (OIDC End Session)
+      parameters:
+      - description: Bearer Access Token
+        in: header
+        name: Authorization
+        type: string
+      - description: ID Token Hint
+        in: query
+        name: id_token_hint
+        type: string
+      - description: Post Logout Redirect URI
+        in: query
+        name: post_logout_redirect_uri
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Logout
+      tags:
+      - auth
+  /auth/refresh:
+    post:
+      consumes:
+      - application/json
+      description: Оновлює access token використовуючи refresh token
+      parameters:
+      - description: Refresh Token
+        in: body
+        name: refreshToken
+        required: true
+        schema:
+          $ref: '#/definitions/models.TokenRefreshRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Token'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Refresh Token
+      tags:
+      - auth
+  /auth/register:
+    post:
+      consumes:
+      - application/json
+      description: Реєструє нового користувача
+      parameters:
+      - description: Registration Data
+        in: body
+        name: registerRequest
+        required: true
+        schema:
+          $ref: '#/definitions/models.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.RegisterResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "409":
+          description: Conflict
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Register
+      tags:
+      - auth
+  /auth/userinfo:
+    get:
+      consumes:
+      - application/json
+      description: Повертає інформацію про користувача (OIDC UserInfo endpoint)
+      parameters:
+      - description: Bearer Access Token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+      summary: User Info
+      tags:
+      - auth
+  /health:
+    get:
+      description: Повертає статус здоров'я сервісу
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Health Check
+      tags:
+      - health
+swagger: "2.0"
