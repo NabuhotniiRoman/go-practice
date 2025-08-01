@@ -411,6 +411,23 @@ func setupRoutes(r *gin.Engine, cfg *Config, db *gorm.DB) {
 		})
 	})
 
+	// Додаємо дублікат health endpoint для API маршруту
+	r.GET("/api/health", func(c *gin.Context) {
+		// Перевірка підключення до БД
+		sqlDB, err := db.DB()
+		dbStatus := "healthy"
+		if err != nil || sqlDB.Ping() != nil {
+			dbStatus = "unhealthy"
+		}
+
+		c.JSON(200, gin.H{
+			"status":   "healthy",
+			"service":  "oidc-api-server",
+			"version":  "dev",
+			"database": dbStatus,
+		})
+	})
+
 	// API group
 	api := r.Group("/api/v1")
 	{

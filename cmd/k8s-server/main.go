@@ -42,7 +42,7 @@ func loadConfigFromEnv() *config.Config {
 			WriteTimeout: getEnv("WRITE_TIMEOUT", "30s"),
 			IdleTimeout:  getEnv("IDLE_TIMEOUT", "120s"),
 		},
-		
+
 		Database: config.DatabaseConfig{
 			Driver:                getEnv("DB_DRIVER", "postgres"),
 			Host:                  getEnv("DB_HOST", "postgres-service"),
@@ -55,7 +55,7 @@ func loadConfigFromEnv() *config.Config {
 			MaxIdleConnections:    5,
 			ConnectionMaxLifetime: getEnv("DB_CONN_MAX_LIFETIME", "5m"),
 		},
-		
+
 		OIDC: config.OIDCConfig{
 			Provider: config.OIDCProviderConfig{
 				IssuerURL:             getEnv("OIDC_ISSUER_URL", ""),
@@ -77,7 +77,7 @@ func loadConfigFromEnv() *config.Config {
 			},
 			Scopes: []string{"openid", "profile", "email"},
 		},
-		
+
 		Security: config.SecurityConfig{
 			CORS: config.CORSConfig{
 				AllowedOrigins:   []string{"*"},
@@ -98,12 +98,12 @@ func loadConfigFromEnv() *config.Config {
 				HTTPOnly: true,
 			},
 		},
-		
+
 		Redis: config.RedisConfig{
 			Enabled: false,
 		},
 	}
-	
+
 	return cfg
 }
 
