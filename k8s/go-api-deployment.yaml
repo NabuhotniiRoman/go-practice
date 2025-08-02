@@ -18,7 +18,7 @@ spec:
   template:
     metadata:
       annotations:
-        kubectl.kubernetes.io/restartedAt: 2025-08-02T19:50:52Z
+        kubectl.kubernetes.io/restartedAt: 2025-08-02T21:24:34Z
       labels:
         app: go-api
     spec:
@@ -27,92 +27,7 @@ spec:
           image: nabuhotnii/go-api:75290d8445b6390b578e1175cc43c9d7b10a3d3f
           command: ["/bin/sh", "-c"]
           args:
-            - |
-              echo "Running database migrations..."
-              cat > /tmp/migration.hcl << 'EOF'
-              server {
-                host = "0.0.0.0"
-                port = 8080
-                environment = "production"
-                log_level = "info"
-                log_format = "text"
-                read_timeout = "30s"
-                write_timeout = "30s"
-                idle_timeout = "120s"
-              }
-              
-              database {
-                driver = "postgres"
-                host = "postgres-service"
-                port = 5432
-                name = "go_practice"
-                user = "oidc_api_user"
-                password = "oidc_secure_password_2025"
-                ssl_mode = "disable"
-                max_open_connections = 10
-                max_idle_connections = 5
-                connection_max_lifetime = "5m"
-              }
-              
-              oidc {
-                provider {
-                  issuer_url = "https://accounts.google.com"
-                  client_id = "dummy"
-                  client_secret = "dummy"
-                  redirect_url = "https://api.example.com/auth/callback"
-                  post_logout_redirect_url = "https://app.example.com"
-                  auth_url = "https://accounts.google.com/o/oauth2/v2/auth"
-                  token_url = "https://oauth2.googleapis.com/token"
-                  userinfo_url = "https://openidconnect.googleapis.com/v1/userinfo"
-                  issuer = "https://accounts.google.com"
-                }
-                
-                tokens {
-                  signing_key = "dev-jwt-secret"
-                  signing_method = "HS256"
-                  access_token_duration = "1h"
-                  refresh_token_duration = "24h"
-                  id_token_duration = "1h"
-                }
-                
-                scopes = ["openid", "profile", "email"]
-              }
-              
-              security {
-                cors {
-                  allowed_origins = ["*"]
-                  allowed_methods = ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
-                  allowed_headers = ["*"]
-                  allow_credentials = true
-                  max_age = 3600
-                }
-                
-                rate_limit {
-                  enabled = true
-                  requests_per_minute = 100
-                  burst = 50
-                }
-                
-                session {
-                  secret = "dev-session-secret"
-                  max_age = 3600
-                  secure = false
-                  http_only = true
-                }
-              }
-              
-              redis {
-                enabled = false
-                host = "localhost"
-                port = 6379
-                password = ""
-                database = 0
-                max_retries = 3
-                pool_size = 10
-              }
-              EOF
-              
-              /root/api-server migrate -c /tmp/migration.hcl
+            - "echo \"Running database migrations...\"\ncat > /tmp/migration.hcl << 'EOF'\nserver {\n  host = \"0.0.0.0\"\n  port = 8080\n  environment = \"production\"\n  log_level = \"info\"\n  log_format = \"text\"\n  read_timeout = \"30s\"\n  write_timeout = \"30s\"\n  idle_timeout = \"120s\"\n}\n\ndatabase {\n  driver = \"postgres\"\n  host = \"postgres-service\"\n  port = 5432\n  name = \"go_practice\"\n  user = \"oidc_api_user\"\n  password = \"oidc_secure_password_2025\"\n  ssl_mode = \"disable\"\n  max_open_connections = 10\n  max_idle_connections = 5\n  connection_max_lifetime = \"5m\"\n}\n\noidc {\n  provider {\n    issuer_url = \"https://accounts.google.com\"\n    client_id = \"dummy\"\n    client_secret = \"dummy\"\n    redirect_url = \"https://api.example.com/auth/callback\"\n    post_logout_redirect_url = \"https://app.example.com\"\n    auth_url = \"https://accounts.google.com/o/oauth2/v2/auth\"\n    token_url = \"https://oauth2.googleapis.com/token\"\n    userinfo_url = \"https://openidconnect.googleapis.com/v1/userinfo\"\n    issuer = \"https://accounts.google.com\"\n  }\n  \n  tokens {\n    signing_key = \"dev-jwt-secret\"\n    signing_method = \"HS256\"\n    access_token_duration = \"1h\"\n    refresh_token_duration = \"24h\"\n    id_token_duration = \"1h\"\n  }\n  \n  scopes = [\"openid\", \"profile\", \"email\"]\n}\n\nsecurity {\n  cors {\n    allowed_origins = [\"*\"]\n    allowed_methods = [\"GET\", \"POST\", \"PUT\", \"DELETE\", \"OPTIONS\"]\n    allowed_headers = [\"*\"]\n    allow_credentials = true\n    max_age = 3600\n  }\n  \n  rate_limit {\n    enabled = true\n    requests_per_minute = 100\n    burst = 50\n  }\n  \n  session {\n    secret = \"dev-session-secret\"\n    max_age = 3600\n    secure = false\n    http_only = true\n  }\n}\n\nredis {\n  enabled = false\n  host = \"localhost\"\n  port = 6379\n  password = \"\"\n  database = 0\n  max_retries = 3\n  pool_size = 10\n}\nEOF\n\n/root/api-server migrate -c /tmp/migration.hcl\n"
           envFrom:
             - configMapRef:
                 name: go-api-config
@@ -127,7 +42,7 @@ spec:
               cpu: "50m"
       containers:
         - name: go-api
-          image: nabuhotnii/go-api:75290d8445b6390b578e1175cc43c9d7b10a3d3f
+          image: nabuhotnii/go-api:64c25ee63a97b26c97fab1bf1f9adbf6f00f4fc7
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
