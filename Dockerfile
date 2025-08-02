@@ -11,7 +11,7 @@ RUN go mod download
 COPY . .
 
 # Будуємо додаток для Kubernetes
-RUN CGO_ENABLED=0 GOOS=linux go build -ldflags "-w -s" -o k8s-server ./cmd/k8s-server
+RUN CGO_ENABLED=0 GOOS=linux go build -ldflags "-w -s" -o api-server ./cmd/api-server
 
 # Фінальний образ
 FROM alpine:latest
@@ -19,11 +19,12 @@ FROM alpine:latest
 RUN apk --no-cache add ca-certificates
 WORKDIR /root/
 
-# Копіюємо бінарник
-COPY --from=builder /app/k8s-server .
+# Копіюємо бінарник і конфігурації
+COPY --from=builder /app/api-server .
+COPY --from=builder /app/configs/ ./configs/
 
 # Відкриваємо порт
 EXPOSE 8080
 
 # Команда запуску
-CMD ["./k8s-server"]
+CMD ["./api-server", "server"]
