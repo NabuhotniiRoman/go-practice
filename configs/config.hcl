@@ -82,6 +82,7 @@ security {
       "https://api.example.com"
     ]
     
+    
     allowed_methods = [
       "GET",
       "POST", 
