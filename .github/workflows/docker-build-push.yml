@@ -29,7 +29,19 @@ jobs:
         docker push nabuhotnii/go-api:${{ github.sha }}
         docker push nabuhotnii/go-api:latest
 
-    # Не змінюємо файли - без конфліктів!
+    - name: Update deployment image
+      run: |
+        # Оновлюємо тег образу в deployment файлі
+        sed -i "s|nabuhotnii/go-api:.*|nabuhotnii/go-api:${{ github.sha }}|g" k8s/go-api-deployment.yaml
+        
+    - name: Commit and push changes
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add k8s/go-api-deployment.yaml
+        git commit -m "Update Go API image to ${{ github.sha }}" || exit 0
+        git push
+
     - name: Success message
       run: |
         echo "✅ Go API Docker images pushed successfully!"
