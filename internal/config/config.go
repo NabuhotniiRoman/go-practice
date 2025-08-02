@@ -394,7 +394,7 @@ func setupRoutes(r *gin.Engine, cfg *Config, db *gorm.DB) {
 
 	// Ініціалізуємо handlers з усіма сервісами
 	authHandler := handlers.NewAuthHandler(authService, cfg.OIDC.Provider.PostLogoutRedirectURL) // Передаємо postLogoutRedirectURL з конфігурації
-	apiHandler := handlers.NewAPIHandler(userService)   // Health endpoint з інформацією про базу даних
+	apiHandler := handlers.NewAPIHandler(userService)                                            // Health endpoint з інформацією про базу даних
 	r.GET("/health", func(c *gin.Context) {
 		// Перевірка підключення до БД
 		sqlDB, err := db.DB()
