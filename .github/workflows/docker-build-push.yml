@@ -35,3 +35,5 @@ jobs:
         echo "✅ Go API Docker images pushed successfully!"
         echo "📦 Image: nabuhotnii/go-api:${{ github.sha }}"
         echo "🔄 ArgoCD will detect changes automatically"
+
+
