@@ -34,6 +34,10 @@ jobs:
         # Оновлюємо тег образу в deployment файлі
         sed -i "s|nabuhotnii/go-api:.*|nabuhotnii/go-api:${{ github.sha }}|g" k8s/go-api-deployment.yaml
         
+        # Додаємо timestamp анотацію для примусового перезапуску
+        TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+        sed -i "s|template:|template:\\n    metadata:\\n      annotations:\\n        kubectl.kubernetes.io/restartedAt: \"$TIMESTAMP\"|" k8s/go-api-deployment.yaml
+        
     - name: Commit and push changes
       run: |
         git config --local user.email "action@github.com"
@@ -46,6 +50,6 @@ jobs:
       run: |
         echo "✅ Go API Docker images pushed successfully!"
         echo "📦 Image: nabuhotnii/go-api:${{ github.sha }}"
-        echo "🔄 ArgoCD will detect changes automatically"
+        echo "🔄 ArgoCD will sync and restart pods automatically!"
 
 
