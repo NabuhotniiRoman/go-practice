@@ -29,14 +29,22 @@ jobs:
         docker push nabuhotnii/go-api:${{ github.sha }}
         docker push nabuhotnii/go-api:latest
 
-    - name: Update deployment image
+
+    - name: Install yq
+      run: sudo wget -O /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 && sudo chmod +x /usr/local/bin/yq
+
+    - name: Set timestamp
+      id: set-timestamp
+      run: echo "timestamp=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_OUTPUT
+
+    - name: Update deployment image and annotation
       run: |
-        # Оновлюємо тег образу в deployment файлі
-        sed -i "s|nabuhotnii/go-api:.*|nabuhotnii/go-api:${{ github.sha }}|g" k8s/go-api-deployment.yaml
-        
-        # Додаємо timestamp анотацію для примусового перезапуску
-        TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-        sed -i "s|template:|template:\\n    metadata:\\n      annotations:\\n        kubectl.kubernetes.io/restartedAt: \"$TIMESTAMP\"|" k8s/go-api-deployment.yaml
+        # Оновлюємо тег образу
+        yq -i '.spec.template.spec.containers[0].image = "nabuhotnii/go-api:${{ github.sha }}"' k8s/go-api-deployment.yaml
+        # Додаємо/оновлюємо анотацію (завжди оновлює, не створює дубль)
+        yq -i 'with(.spec.template.metadata; .annotations //= {} | .annotations."kubectl.kubernetes.io/restartedAt" = env(TIMESTAMP))' k8s/go-api-deployment.yaml
+      env:
+        TIMESTAMP: ${{ steps.set-timestamp.outputs.timestamp }}
         
     - name: Commit and push changes
       run: |
