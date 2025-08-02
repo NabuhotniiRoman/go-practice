@@ -11,13 +11,15 @@ import (
 
 // AuthHandler містить handlers для OIDC authentication
 type AuthHandler struct {
-	authService services.AuthService
+	authService        services.AuthService
+	postLogoutRedirect string
 }
 
 // NewAuthHandler створює новий AuthHandler
-func NewAuthHandler(authService services.AuthService) *AuthHandler {
+func NewAuthHandler(authService services.AuthService, postLogoutRedirect string) *AuthHandler {
 	return &AuthHandler{
-		authService: authService,
+		authService:        authService,
+		postLogoutRedirect: postLogoutRedirect,
 	}
 }
 
@@ -149,7 +151,7 @@ func (h *AuthHandler) Callback(c *gin.Context) {
 	}).Info("OIDC callback processed successfully")
 
 	// Редіректимо клієнта у React додаток
-	c.Redirect(http.StatusSeeOther, "http://localhost:5173/?token="+tokens.AccessToken)
+	c.Redirect(http.StatusSeeOther, h.postLogoutRedirect+"?token="+tokens.AccessToken)
 
 	c.JSON(http.StatusOK, tokens)
 }
