@@ -40,11 +40,20 @@ func NewAPIHandler(userService services.UserService) *APIHandler {
 func (h *APIHandler) AddFriend(c *gin.Context) {
 	logrus.Info("AddFriend handler called - маршрут працює!")
 
-	userUUID := middleware.GetCurrentID(c)
-	if userUUID == uuid.Nil {
+	userID, ok := middleware.GetCurrentUserID(c)
+	if !ok {
 		logrus.Error("Failed to get user ID from context in AddFriend")
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "Failed to get user ID from context",
+		})
+		return
+	}
+
+	currentUserID, err := h.userService.GetIDByUserID(userID)
+	if err != nil {
+		logrus.WithError(err).Error("Failed to get user ID from UserService")
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to get user ID from UserService",
 		})
 		return
 	}
@@ -59,11 +68,25 @@ func (h *APIHandler) AddFriend(c *gin.Context) {
 		return
 	}
 
+	trimmedCurrentUserID := strings.TrimSpace(currentUserID)
+
+	if after, ok := strings.CutPrefix(trimmedCurrentUserID, "usr_"); ok {
+		trimmedCurrentUserID = after
+	}
+
 	rawID := strings.TrimSpace(req.FriendID)
 
 	// Якщо є префікс "usr_", видаляємо його
 	if after, ok := strings.CutPrefix(rawID, "usr_"); ok {
 		rawID = after
+	}
+
+	currentUserUUID, err := uuid.Parse(trimmedCurrentUserID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid UUID format for current_user_id",
+		})
+		return
 	}
 
 	friendUUID, err := uuid.Parse(rawID)
@@ -75,7 +98,7 @@ func (h *APIHandler) AddFriend(c *gin.Context) {
 	}
 
 	// Не можна додати себе в друзі
-	if friendUUID == userUUID {
+	if friendUUID == currentUserUUID {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "Cannot add yourself as a friend",
 		})
@@ -83,7 +106,7 @@ func (h *APIHandler) AddFriend(c *gin.Context) {
 	}
 
 	// Перевіряємо чи вже є в друзях
-	isFriend, err := h.userService.AreFriends(userUUID, friendUUID)
+	isFriend, err := h.userService.AreFriends(currentUserUUID, friendUUID)
 	if err != nil {
 		logrus.WithError(err).Error("Failed to check friendship")
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -99,7 +122,7 @@ func (h *APIHandler) AddFriend(c *gin.Context) {
 	}
 
 	// Додаємо в друзі
-	err = h.userService.AddFriend(userUUID, friendUUID)
+	err = h.userService.AddFriend(currentUserUUID, friendUUID)
 	if err != nil {
 		logrus.WithError(err).Error("Failed to add friend")
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -109,7 +132,7 @@ func (h *APIHandler) AddFriend(c *gin.Context) {
 	}
 
 	logrus.WithFields(logrus.Fields{
-		"user_id":   userUUID,
+		"user_id":   currentUserUUID,
 		"friend_id": friendUUID,
 	}).Info("Friend added successfully")
 

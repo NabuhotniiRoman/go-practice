@@ -30,6 +30,7 @@ type UserService interface {
 	UpdateUser(userID string, updates map[string]interface{}) error
 	AreFriends(userID, friendID uuid.UUID) (bool, error)
 	AddFriend(userID, friendID uuid.UUID) error
+	GetIDByUserID(userID string) (string, error)
 	DeleteUser(userID string) error
 	GetProfile(userID string) (*models.UserProfile, error)
 	CreateOrUpdateFromOIDC(sub, email, name, picture string) (*User, error)

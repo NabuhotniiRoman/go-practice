@@ -138,6 +138,19 @@ func (s *userService) ValidatePassword(email, password string) (*User, error) {
 	return user, nil
 }
 
+// GetIDByUserID отримує ID користувача за його userID
+func (s *userService) GetIDByUserID(userID string) (string, error) {
+	var user User
+	err := s.db.Select("id").Where("id = ? AND is_active = ?", userID, true).First(&user).Error
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return "", fmt.Errorf("user not found")
+		}
+		return "", fmt.Errorf("failed to get user id: %w", err)
+	}
+	return user.ID, nil
+}
+
 // AreFriends перевіряє чи є користувачі друзями
 func (s *userService) AreFriends(userID, friendID uuid.UUID) (bool, error) {
 	var exists bool
