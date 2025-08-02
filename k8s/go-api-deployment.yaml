@@ -18,38 +18,37 @@ spec:
   template:
     metadata:
       annotations:
-        kubectl.kubernetes.io/restartedAt: "2025-08-02T12:58:03Z"
+        kubectl.kubernetes.io/restartedAt: 2025-08-02T14:14:25Z
       labels:
         app: go-api
     spec:
       containers:
-      - name: go-api
-        image: nabuhotnii/go-api:5c8d7d35f8a6579a0066b5386b260c9e790452e5
-        imagePullPolicy: Always
-        ports:
-        - containerPort: 8080
-        envFrom:
-        - configMapRef:
-            name: go-api-config
-        - secretRef:
-            name: go-api-secrets
-        resources:
-          requests:
-            memory: "64Mi"
-            cpu: "50m"
-          limits:
-            memory: "128Mi"
-            cpu: "100m"
-        livenessProbe:
-          httpGet:
-            path: /health
-            port: 8080
-          initialDelaySeconds: 30
-          periodSeconds: 10
-        readinessProbe:
-          httpGet:
-            path: /health
-            port: 8080
-          initialDelaySeconds: 10
-          periodSeconds: 5
-          
+        - name: go-api
+          image: nabuhotnii/go-api:dc652b04123d1c99d3b3e9a3289026c2d10514cb
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+          envFrom:
+            - configMapRef:
+                name: go-api-config
+            - secretRef:
+                name: go-api-secrets
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "50m"
+            limits:
+              memory: "128Mi"
+              cpu: "100m"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 5
