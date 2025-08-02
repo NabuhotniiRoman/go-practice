@@ -18,13 +18,13 @@ spec:
   template:
     metadata:
       annotations:
-        kubectl.kubernetes.io/restartedAt: 2025-08-02T17:10:24Z
+        kubectl.kubernetes.io/restartedAt: 2025-08-02T17:17:39Z
       labels:
         app: go-api
     spec:
       containers:
         - name: go-api
-          image: nabuhotnii/go-api:38027e87b7ced6f8b6f6d46e1414685a5f21a524
+          image: nabuhotnii/go-api:5f0b9c1c81d22c1e446bf9eb3f890b9c5536d4c3
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
