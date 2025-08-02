@@ -22,7 +22,7 @@ spec:
     spec:
       containers:
       - name: go-api
-        image: nabuhotnii/go-api:latest
+        image: nabuhotnii/go-api:d5dac14c39685e079bf64b94b5618873aba83c2a
         imagePullPolicy: Always
         ports:
         - containerPort: 8080
