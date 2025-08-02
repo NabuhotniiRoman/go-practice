@@ -185,8 +185,9 @@ func (s *userService) AddFriend(userID, friendID uuid.UUID) error {
 	err := s.db.Exec(`
 		INSERT INTO friendships (user_id, friend_id, created_at, updated_at)
 		VALUES (?, ?, ?, ?)
-		ON CONFLICT ON CONSTRAINT friendships_user_friend_unique DO NOTHING
+		ON CONFLICT (user_id, friend_id) DO NOTHING
 	`, friendship.UserID, friendship.FriendID, friendship.CreatedAt, friendship.UpdatedAt).Error
+
 	return err
 }
 
