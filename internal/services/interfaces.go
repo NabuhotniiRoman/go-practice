@@ -4,8 +4,6 @@ import (
 	"time"
 
 	"go-practice/internal/models"
-
-	"github.com/google/uuid"
 )
 
 // AuthService інтерфейс для автентифікації
@@ -28,8 +26,8 @@ type UserService interface {
 	GetUserByID(id string) (*User, error)
 	ValidatePassword(email, password string) (*User, error)
 	UpdateUser(userID string, updates map[string]interface{}) error
-	AreFriends(userID, friendID uuid.UUID) (bool, error)
-	AddFriend(userID, friendID uuid.UUID) error
+	AreFriends(userID, friendID string) (bool, error)
+	AddFriend(userID, friendID string) error
 	GetIDByUserID(userID string) (string, error)
 	DeleteUser(userID string) error
 	GetProfile(userID string) (*models.UserProfile, error)

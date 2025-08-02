@@ -8,7 +8,6 @@ import (
 	"go-practice/internal/services"
 
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 )
 
@@ -81,24 +80,8 @@ func (h *APIHandler) AddFriend(c *gin.Context) {
 		rawID = after
 	}
 
-	currentUserUUID, err := uuid.Parse(trimmedCurrentUserID)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Invalid UUID format for current_user_id",
-		})
-		return
-	}
-
-	friendUUID, err := uuid.Parse(rawID)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Invalid UUID format for friend_id",
-		})
-		return
-	}
-
 	// Не можна додати себе в друзі
-	if friendUUID == currentUserUUID {
+	if rawID == trimmedCurrentUserID {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "Cannot add yourself as a friend",
 		})
@@ -106,7 +89,7 @@ func (h *APIHandler) AddFriend(c *gin.Context) {
 	}
 
 	// Перевіряємо чи вже є в друзях
-	isFriend, err := h.userService.AreFriends(currentUserUUID, friendUUID)
+	isFriend, err := h.userService.AreFriends(trimmedCurrentUserID, rawID)
 	if err != nil {
 		logrus.WithError(err).Error("Failed to check friendship")
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -122,7 +105,7 @@ func (h *APIHandler) AddFriend(c *gin.Context) {
 	}
 
 	// Додаємо в друзі
-	err = h.userService.AddFriend(currentUserUUID, friendUUID)
+	err = h.userService.AddFriend(trimmedCurrentUserID, rawID)
 	if err != nil {
 		logrus.WithError(err).Error("Failed to add friend")
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -132,13 +115,13 @@ func (h *APIHandler) AddFriend(c *gin.Context) {
 	}
 
 	logrus.WithFields(logrus.Fields{
-		"user_id":   currentUserUUID,
-		"friend_id": friendUUID,
+		"user_id":   trimmedCurrentUserID,
+		"friend_id": rawID,
 	}).Info("Friend added successfully")
 
 	c.JSON(http.StatusOK, gin.H{
 		"message":   "Friend added successfully",
-		"friend_id": friendUUID,
+		"friend_id": rawID,
 	})
 }
 

@@ -8,7 +8,6 @@ import (
 
 	"go-practice/internal/models"
 
-	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
@@ -152,7 +151,7 @@ func (s *userService) GetIDByUserID(userID string) (string, error) {
 }
 
 // AreFriends перевіряє чи є користувачі друзями
-func (s *userService) AreFriends(userID, friendID uuid.UUID) (bool, error) {
+func (s *userService) AreFriends(userID, friendID string) (bool, error) {
 	var exists bool
 	err := s.db.Raw(`
 		SELECT EXISTS (
@@ -167,10 +166,10 @@ func (s *userService) AreFriends(userID, friendID uuid.UUID) (bool, error) {
 }
 
 // AddFriend додає користувача в друзі
-func (s *userService) AddFriend(userID, friendID uuid.UUID) error {
+func (s *userService) AddFriend(userID, friendID string) error {
 	type Friendship struct {
-		UserID    uuid.UUID `gorm:"type:uuid;not null;index"`
-		FriendID  uuid.UUID `gorm:"type:uuid;not null;index"`
+		UserID    string `gorm:"type:text;not null;index"`
+		FriendID  string `gorm:"type:text;not null;index"`
 		CreatedAt time.Time
 		UpdatedAt time.Time
 	}
@@ -182,10 +181,22 @@ func (s *userService) AddFriend(userID, friendID uuid.UUID) error {
 		UpdatedAt: time.Now(),
 	}
 
-	err := s.db.Exec(`
+	// Спочатку перевіряємо чи вже існує такий зв'язок
+	var count int64
+	err := s.db.Model(&Friendship{}).Where("user_id = ? AND friend_id = ?", friendship.UserID, friendship.FriendID).Count(&count).Error
+	if err != nil {
+		return err
+	}
+
+	// Якщо вже існує - нічого не робимо
+	if count > 0 {
+		return nil
+	}
+
+	// Інакше додаємо новий зв'язок
+	err = s.db.Exec(`
 		INSERT INTO friendships (user_id, friend_id, created_at, updated_at)
 		VALUES (?, ?, ?, ?)
-		ON CONFLICT (user_id, friend_id) DO NOTHING
 	`, friendship.UserID, friendship.FriendID, friendship.CreatedAt, friendship.UpdatedAt).Error
 
 	return err
