@@ -36,8 +36,11 @@ func NewAPIHandler(userService services.UserService) *APIHandler {
 // @Failure 500 {object} map[string]interface{}
 // @Router /api/v1/friends/add [post]
 func (h *APIHandler) AddFriend(c *gin.Context) {
+	logrus.Info("AddFriend handler called - маршрут працює!")
+
 	userID, exists := middleware.GetCurrentUserID(c)
 	if !exists {
+		logrus.Error("Failed to get user ID from context in AddFriend")
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "Failed to get user ID from context",
 		})

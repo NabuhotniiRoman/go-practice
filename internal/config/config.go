@@ -435,6 +435,14 @@ func setupRoutes(r *gin.Engine, cfg *Config, db *gorm.DB) {
 		// Public endpoints
 		api.GET("/public", apiHandler.PublicData)
 
+		// Debug endpoint для перевірки роботи API (тимчасово)
+		api.POST("/friends/add-debug", func(c *gin.Context) {
+			c.JSON(http.StatusOK, gin.H{
+				"message": "Debug endpoint works - маршрут знайдений",
+				"path":    c.Request.URL.Path,
+			})
+		})
+
 		// Protected endpoints з middleware аутентифікації
 		protected := api.Group("/")
 		protected.Use(middleware.AuthMiddleware(jwtService, userService))
