@@ -58,7 +58,7 @@ func (h *APIHandler) AddFriend(c *gin.Context) {
 		return
 	}
 
-	// Перевіряємо, що userID і friendID - валідні UUID
+	// Парсимо UUID
 	userUUID, err := uuid.Parse(userIDStr)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -66,6 +66,7 @@ func (h *APIHandler) AddFriend(c *gin.Context) {
 		})
 		return
 	}
+
 	friendUUID, err := uuid.Parse(req.FriendID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -83,7 +84,7 @@ func (h *APIHandler) AddFriend(c *gin.Context) {
 	}
 
 	// Перевіряємо чи вже є в друзях
-	isFriend, err := h.userService.AreFriends(userUUID.String(), friendUUID.String())
+	isFriend, err := h.userService.AreFriends(userUUID, friendUUID)
 	if err != nil {
 		logrus.WithError(err).Error("Failed to check friendship")
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -99,7 +100,7 @@ func (h *APIHandler) AddFriend(c *gin.Context) {
 	}
 
 	// Додаємо в друзі
-	err = h.userService.AddFriend(userUUID.String(), friendUUID.String())
+	err = h.userService.AddFriend(userUUID, friendUUID)
 	if err != nil {
 		logrus.WithError(err).Error("Failed to add friend")
 		c.JSON(http.StatusInternalServerError, gin.H{

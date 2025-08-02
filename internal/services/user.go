@@ -8,6 +8,7 @@ import (
 
 	"go-practice/internal/models"
 
+	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
@@ -138,7 +139,7 @@ func (s *userService) ValidatePassword(email, password string) (*User, error) {
 }
 
 // AreFriends перевіряє чи користувачі є друзями
-func (s *userService) AreFriends(userID, friendID string) (bool, error) {
+func (s *userService) AreFriends(userID, friendID uuid.UUID) (bool, error) {
 	var exists bool
 	err := s.db.Raw(`
 		SELECT EXISTS (
@@ -153,21 +154,21 @@ func (s *userService) AreFriends(userID, friendID string) (bool, error) {
 }
 
 // AddFriend додає користувача в друзі
-func (s *userService) AddFriend(userID, friendID string) error {
-	// Додаємо запис у friendships
+func (s *userService) AddFriend(userID, friendID uuid.UUID) error {
 	type Friendship struct {
-		UserID    string `gorm:"type:uuid;not null;index"`
-		FriendID  string `gorm:"type:uuid;not null;index"`
+		UserID    uuid.UUID `gorm:"type:uuid;not null;index"`
+		FriendID  uuid.UUID `gorm:"type:uuid;not null;index"`
 		CreatedAt time.Time
 		UpdatedAt time.Time
 	}
+
 	friendship := Friendship{
 		UserID:    userID,
 		FriendID:  friendID,
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
 	}
-	// Використовуємо INSERT IGNORE через ON CONFLICT DO NOTHING
+
 	err := s.db.Exec(`
 		INSERT INTO friendships (user_id, friend_id, created_at, updated_at)
 		VALUES (?, ?, ?, ?)
