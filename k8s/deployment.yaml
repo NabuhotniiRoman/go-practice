@@ -17,8 +17,8 @@ spec:
     spec:
       containers:
       - name: go-api
-        image: go-api:latest
-        imagePullPolicy: Never
+        image: nabuhotnii/go-api:latest
+        imagePullPolicy: Always
         ports:
         - containerPort: 8080
         envFrom:
