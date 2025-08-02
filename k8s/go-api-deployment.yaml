@@ -32,7 +32,7 @@ spec:
             - configMapRef:
                 name: go-api-config
             - secretRef:
-                name: go-api-secrets
+                name: go-api-secrets-clean
           resources:
             requests:
               memory: "64Mi"
