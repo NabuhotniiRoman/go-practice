@@ -8,7 +8,7 @@
 - CORS налаштований для HTTPS доменів
 
 ### 2. **Frontend**: `https://app.example.com`
-- API конфігурація оновлена для використання `https://api.example.com`
+- API конфігурація оновлена для використання `https://app.example.com`
 - Самопідписаний SSL сертифікат створений
 - Ingress налаштований для обох доменів
 
@@ -16,7 +16,7 @@
 
 ### 1. **Додайте домени в /etc/hosts** (вже зроблено):
 ```bash
-echo "192.168.49.2 api.example.com app.example.com" | sudo tee -a /etc/hosts
+echo "192.168.49.2 app.example.com app.example.com" | sudo tee -a /etc/hosts
 ```
 
 ### 2. **Тестування API**:

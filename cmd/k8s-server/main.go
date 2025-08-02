@@ -62,7 +62,7 @@ func loadConfigFromEnv() *config.Config {
 				ClientID:              getEnv("OIDC_CLIENT_ID", ""),
 				ClientSecret:          getEnv("OIDC_CLIENT_SECRET", ""),
 				RedirectURL:           getEnv("OIDC_REDIRECT_URL", "https://api.example.com/auth/callback"),
-				PostLogoutRedirectURL: getEnv("OIDC_POST_LOGOUT_URL", "https://app.example.com"),
+				PostLogoutRedirectURL: getEnv("OIDC_POST_LOGOUT_URL", "https://api.example.com"),
 				AuthURL:               getEnv("OIDC_AUTH_URL", ""),
 				TokenURL:              getEnv("OIDC_TOKEN_URL", ""),
 				UserInfoURL:           getEnv("OIDC_USERINFO_URL", ""),
@@ -81,7 +81,7 @@ func loadConfigFromEnv() *config.Config {
 		Security: config.SecurityConfig{
 			CORS: config.CORSConfig{
 				AllowedOrigins: []string{
-					"https://app.example.com",   // Frontend URL (HTTPS)
+					"https://api.example.com",   // Frontend URL (HTTPS)
 					"https://api.example.com",   // API URL (HTTPS)
 					"http://192.168.49.2:30500", // Frontend URL (NodePort for local dev)
 					"http://localhost:3000",     // Local development
