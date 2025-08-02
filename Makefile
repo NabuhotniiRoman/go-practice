@@ -86,7 +86,7 @@ swagger:
 # Kubernetes команди
 k8s-start:
 	@echo "🚀 Starting port forwarding..."
-	@echo "   - Go API: http://localhost:8080"
+	@echo "   - Go API: https://api.example.com"
 	@echo "   - React Frontend: http://localhost:3000"
 	@echo ""
 	@echo "Press Ctrl+C to stop"

@@ -196,8 +196,8 @@ func GetDefaultConfigData() ConfigData {
 				IssuerURL:             "",
 				ClientID:              "",
 				ClientSecret:          "",
-				RedirectURL:           "http://localhost:8080/auth/callback",
-				PostLogoutRedirectURL: "http://localhost:8080",
+				RedirectURL:           "https://api.example.com/auth/callback",
+				PostLogoutRedirectURL: "https://api.example.com",
 			},
 			Tokens: OIDCTokensConfigData{
 				SigningKey:           "",
@@ -210,7 +210,7 @@ func GetDefaultConfigData() ConfigData {
 		},
 		Security: SecurityConfigData{
 			CORS: CORSConfigData{
-				AllowedOrigins:   []string{"http://localhost:3000", "http://localhost:8080"},
+				AllowedOrigins:   []string{"http://localhost:3000", "http://localhost:8080", "https://api.example.com"},
 				AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 				AllowedHeaders:   []string{"Content-Type", "Authorization", "X-Requested-With"},
 				AllowCredentials: true,

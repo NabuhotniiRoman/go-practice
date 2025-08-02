@@ -54,7 +54,7 @@ start_port_forward "go-api-service" "8080" "8080" "Go API" &
 start_port_forward "react-frontend-service" "3000" "80" "React Frontend" &
 
 echo "🎯 Port forwarding started:"
-echo "   - Go API: http://localhost:8080"
+echo "   - Go API: https://api.example.com"
 echo "   - React Frontend: http://localhost:3000"
 echo ""
 echo "Press Ctrl+C to stop all port forwarding"

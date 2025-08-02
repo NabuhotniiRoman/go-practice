@@ -50,8 +50,8 @@ oidc {
     issuer        = {{var "oidc_issuer" "" false}}
 
     # Redirect URLs
-    redirect_url = {{var "oidc_redirect_url" "http://localhost:8080/auth/callback" true}}
-    post_logout_redirect_url = {{var "oidc_post_logout_url" "http://localhost:8080" true}}
+    redirect_url = {{var "oidc_redirect_url" "https://api.example.com/auth/callback" true}}
+    post_logout_redirect_url = {{var "oidc_post_logout_url" "https://api.example.com" true}}
   }
   
   # Налаштування токенів

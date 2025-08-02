@@ -46,8 +46,8 @@ oidc {
     client_secret = "{{var "oidc_client_secret" "" false}}"
     
     # Redirect URLs
-    redirect_url = "{{var "oidc_redirect_url" "http://localhost:8080/auth/callback" true}}"
-    post_logout_redirect_url = "{{var "oidc_post_logout_url" "http://localhost:8080" true}}"
+    redirect_url = "{{var "oidc_redirect_url" "https://api.example.com/auth/callback" true}}"
+    post_logout_redirect_url = "{{var "oidc_post_logout_url" "https://api.example.com" true}}"
   }
   
   # Налаштування токенів
@@ -75,7 +75,7 @@ security {
   # CORS
   cors {
     allowed_origins = [
-      "{{var "cors_allowed_origins" "http://localhost:3000,http://localhost:8080" true}}"
+      "{{var "cors_allowed_origins" "http://localhost:3000,http://localhost:8080,https://api.example.com" true}}"
     ]
     
     allowed_methods = [
