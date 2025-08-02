@@ -53,6 +53,19 @@ func NewApp() *cli.App {
 				Action: serverAction,
 			},
 			{
+				Name:  "migrate",
+				Usage: "Apply database migrations",
+				Flags: []cli.Flag{
+					&cli.StringFlag{
+						Name:    "config",
+						Aliases: []string{"c"},
+						Usage:   "Configuration file path",
+						Value:   "_local.hcl",
+					},
+				},
+				Action: migrateAction,
+			},
+			{
 				Name:   "version",
 				Usage:  "Show version information",
 				Action: versionAction,

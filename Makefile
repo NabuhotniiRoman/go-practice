@@ -5,7 +5,7 @@ MODULE_NAME := go-practice
 BUILD_VERSION ?= $(shell git describe --tags --always --dirty 2>/dev/null || echo "dev")
 BUILD_NUMBER ?= $(shell git rev-parse --short HEAD 2>/dev/null || echo "local")
 
-.PHONY: help build test clean run-api dev setup-db-local db-connect dependencies configure _local.hcl k8s-start k8s-stop k8s-status k8s-logs docker-build docker-push k8s-deploy
+.PHONY: help build test clean run-api dev setup-db-local db-connect dependencies configure _local.hcl k8s-start k8s-stop k8s-status k8s-logs docker-build docker-push k8s-deploy migrate
 
 # Показати допомогу
 help:
@@ -27,6 +27,8 @@ help:
 	@echo "  k8s-logs        - Show API logs"
 	@echo "  docker-build    - Build and push Docker images"
 	@echo "  k8s-deploy      - Deploy to Kubernetes via ArgoCD"
+	@echo "  k8s-deploy-with-migrations - Deploy with automatic database migrations"
+	@echo "  k8s-migrate     - Run only database migrations in Kubernetes"
 
 # Залежності
 dependencies:
@@ -131,3 +133,22 @@ k8s-deploy: docker-push
 	@kubectl patch app my-go-api -n argocd --type merge -p '{"operation":{"sync":{"revision":"HEAD"}}}'
 	@kubectl patch app my-react-frontend -n argocd --type merge -p '{"operation":{"sync":{"revision":"HEAD"}}}'
 	@echo "✅ ArgoCD sync triggered"
+
+# Деплоймент з міграціями
+k8s-deploy-with-migrations:
+	@echo "🚀 Deploying with database migrations..."
+	@cd k8s && ./deploy-with-migrations.sh
+
+# Запуск тільки міграцій в Kubernetes
+k8s-migrate:
+	@echo "🗃️ Running database migrations in Kubernetes..."
+	@kubectl delete job db-migration --ignore-not-found=true
+	@kubectl apply -f k8s/configmap.yaml
+	@kubectl apply -f k8s/db-migration-job.yaml
+	@kubectl wait --for=condition=complete job/db-migration --timeout=300s
+	@echo "✅ Migrations completed"
+
+# Apply migrations
+migrate:
+	@echo "🚀 Applying migrations..."
+	go run ./cmd/api-server/main.go migrate -c _local.hcl

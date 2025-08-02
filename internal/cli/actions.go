@@ -11,6 +11,32 @@ import (
 	"go-practice/internal/config"
 )
 
+// migrateAction застосовує міграції до бази даних
+func migrateAction(c *cli.Context) error {
+	configPath := c.String("config")
+	fmt.Println("🚀 Running database migrations...")
+
+	// Перевіряємо що конфіг існує
+	if _, err := os.Stat(configPath); os.IsNotExist(err) {
+		return fmt.Errorf("config file does not exist: %s. Run 'configure' command first", configPath)
+	}
+
+	// Завантажуємо конфігурацію
+	cfg, err := config.LoadConfig(configPath)
+	if err != nil {
+		return fmt.Errorf("failed to load config: %w", err)
+	}
+
+	// Запускаємо міграції через функцію в config
+	err = config.RunMigrations(cfg)
+	if err != nil {
+		return fmt.Errorf("failed to run migrations: %w", err)
+	}
+
+	fmt.Println("✅ Database migrations completed successfully")
+	return nil
+}
+
 // configureAction генерує конфігурацію з шаблону
 func configureAction(c *cli.Context) error {
 	templatePath := c.String("template")

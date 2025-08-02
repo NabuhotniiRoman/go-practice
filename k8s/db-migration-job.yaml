@@ -1,34 +1,29 @@
-apiVersion: apps/v1
-kind: Deployment
+apiVersion: batch/v1
+kind: Job
 metadata:
-  name: go-api
+  name: db-migration
   labels:
     app: go-api
+    component: migration
 spec:
-  replicas: 1
-  revisionHistoryLimit: 2
-  selector:
-    matchLabels:
-      app: go-api
-  strategy:
-    type: RollingUpdate
-    rollingUpdate:
-      maxSurge: 25%
-      maxUnavailable: 25%
+  backoffLimit: 3
+  completions: 1
+  parallelism: 1
   template:
     metadata:
-      annotations:
-        kubectl.kubernetes.io/restartedAt: 2025-08-02T19:50:52Z
       labels:
         app: go-api
+        component: migration
     spec:
-      initContainers:
+      restartPolicy: Never
+      containers:
         - name: db-migration
-          image: nabuhotnii/go-api:75290d8445b6390b578e1175cc43c9d7b10a3d3f
+          image: nabuhotnii/go-api:latest
           command: ["/bin/sh", "-c"]
           args:
             - |
               echo "Running database migrations..."
+              # Створюємо тимчасовий конфіг для міграції
               cat > /tmp/migration-config.hcl << 'EOF'
               server {
                 environment = "production"
@@ -114,33 +109,3 @@ spec:
             limits:
               memory: "64Mi"
               cpu: "50m"
-      containers:
-        - name: go-api
-          image: nabuhotnii/go-api:75290d8445b6390b578e1175cc43c9d7b10a3d3f
-          imagePullPolicy: Always
-          ports:
-            - containerPort: 8080
-          envFrom:
-            - configMapRef:
-                name: go-api-config
-            - secretRef:
-                name: go-api-secrets
-          resources:
-            requests:
-              memory: "64Mi"
-              cpu: "50m"
-            limits:
-              memory: "128Mi"
-              cpu: "100m"
-          livenessProbe:
-            httpGet:
-              path: /health
-              port: 8080
-            initialDelaySeconds: 30
-            periodSeconds: 10
-          readinessProbe:
-            httpGet:
-              path: /health
-              port: 8080
-            initialDelaySeconds: 10
-            periodSeconds: 5

@@ -1,6 +1,8 @@
 #!/bin/bash
 
-# Скрипт для локального встановлення PostgreSQL на macOS та ініціалізації бази даних
+
+# Скрипт для локального встановлення та ініціалізації PostgreSQL бази даних (Linux)
+
 
 set -e
 
@@ -11,25 +13,14 @@ DB_PASSWORD="oidc_secure_password_2025"
 DB_HOST="localhost"
 DB_PORT="5432"
 
-echo "🐘 Локальне встановлення PostgreSQL для go_practice OIDC API Server"
 
-# Перевірка чи встановлений Homebrew
-if ! command -v brew &> /dev/null; then
-    echo "❌ Homebrew не знайдено. Встановіть спочатку Homebrew:"
-    echo "   /bin/bash -c \"\$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\""
-    exit 1
-fi
+echo "🐘 Локальне встановлення PostgreSQL для go_practice OIDC API Server (Linux)"
 
 # Перевірка чи встановлений PostgreSQL
 if ! command -v psql &> /dev/null; then
-    echo "📦 Встановлюємо PostgreSQL через Homebrew..."
-    brew install postgresql@14
-    
-    # Додаємо в PATH
-    echo 'export PATH="/opt/homebrew/opt/postgresql@14/bin:$PATH"' >> ~/.zshrc
-    export PATH="/opt/homebrew/opt/postgresql@14/bin:$PATH"
-    
-    echo "✅ PostgreSQL встановлено"
+    echo "❌ PostgreSQL не знайдено. Встановіть його через apt або інший пакетний менеджер:"
+    echo "   sudo apt update && sudo apt install postgresql postgresql-contrib"
+    exit 1
 else
     echo "✅ PostgreSQL вже встановлений: $(psql --version)"
 fi
@@ -38,15 +29,10 @@ fi
 echo "🔍 Перевіряємо статус PostgreSQL..."
 if pg_isready -h localhost -p $DB_PORT > /dev/null 2>&1; then
     echo "✅ PostgreSQL вже запущений і готовий"
-elif ! brew services list | grep postgresql@14 | grep started > /dev/null; then
-    echo "🚀 Запускаємо PostgreSQL сервіс..."
-    brew services start postgresql@14 2>/dev/null || {
-        echo "⚠️  Помилка з brew services, спробуємо запустити вручну..."
-        pg_ctl -D /opt/homebrew/var/postgresql@14 start -l /opt/homebrew/var/postgresql@14/server.log
-    }
-    sleep 3
 else
-    echo "✅ PostgreSQL сервіс запущений"
+    echo "🚀 Запускаємо PostgreSQL..."
+    sudo service postgresql start
+    sleep 3
 fi
 
 # Функція для перевірки підключення
@@ -66,10 +52,11 @@ wait_for_postgres() {
 # Очікуємо готовності
 wait_for_postgres
 
+
 # Створюємо користувача (якщо не існує)
 echo "👤 Створюємо користувача $DB_USER..."
-if ! psql -h localhost -U $(whoami) -d postgres -tAc "SELECT 1 FROM pg_roles WHERE rolname='$DB_USER'" | grep -q 1; then
-    psql -h localhost -U $(whoami) -d postgres -c "CREATE USER $DB_USER WITH PASSWORD '$DB_PASSWORD' CREATEDB;"
+if ! sudo -u postgres psql -tAc "SELECT 1 FROM pg_roles WHERE rolname='$DB_USER'" | grep -q 1; then
+    sudo -u postgres psql -c "CREATE USER $DB_USER WITH PASSWORD '$DB_PASSWORD' CREATEDB;"
     echo "✅ Користувач $DB_USER створений"
 else
     echo "✅ Користувач $DB_USER вже існує"
@@ -77,8 +64,8 @@ fi
 
 # Створюємо базу даних (якщо не існує)
 echo "🗄️ Створюємо базу даних $DB_NAME..."
-if ! psql -h localhost -U $(whoami) -d postgres -lqt | cut -d \| -f 1 | grep -qw $DB_NAME; then
-    psql -h localhost -U $(whoami) -d postgres -c "CREATE DATABASE $DB_NAME OWNER $DB_USER;"
+if ! sudo -u postgres psql -lqt | cut -d \| -f 1 | grep -qw $DB_NAME; then
+    sudo -u postgres psql -c "CREATE DATABASE $DB_NAME OWNER $DB_USER;"
     echo "✅ База даних $DB_NAME створена"
 else
     echo "✅ База даних $DB_NAME вже існує"
@@ -86,7 +73,7 @@ fi
 
 # Надаємо права користувачу
 echo "🔑 Налаштовуємо права доступу..."
-psql -h localhost -U $(whoami) -d $DB_NAME -c "
+sudo -u postgres psql -d $DB_NAME -c "
     GRANT ALL PRIVILEGES ON DATABASE $DB_NAME TO $DB_USER;
     GRANT ALL PRIVILEGES ON SCHEMA public TO $DB_USER;
     GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO $DB_USER;
@@ -94,6 +81,7 @@ psql -h localhost -U $(whoami) -d $DB_NAME -c "
     ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO $DB_USER;
     ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO $DB_USER;
 "
+
 
 # Виконуємо SQL скрипт ініціалізації
 echo "📊 Виконуємо скрипт ініціалізації бази даних..."
@@ -114,10 +102,6 @@ echo "   postgres://$DB_USER:$DB_PASSWORD@$DB_HOST:$DB_PORT/$DB_NAME?sslmode=dis
 echo ""
 echo "🛠️ Корисні команди:"
 echo "   Підключитись до бази: psql -h localhost -U $DB_USER -d $DB_NAME"
-echo "   Зупинити PostgreSQL: brew services stop postgresql@14"
-echo "   Запустити PostgreSQL: brew services start postgresql@14"
-echo "   Переглянути статус: brew services list | grep postgresql"
-echo ""
-echo "📱 Додатково:"
-echo "   Додайте в ~/.zshrc: export PATH=\"/opt/homebrew/opt/postgresql@14/bin:\$PATH\""
-echo "   Або перезапустіть термінал для застосування змін"
+echo "   Зупинити PostgreSQL: sudo service postgresql stop"
+echo "   Запустити PostgreSQL: sudo service postgresql start"
+echo "   Переглянути статус: sudo service postgresql status"

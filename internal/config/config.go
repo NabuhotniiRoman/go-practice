@@ -12,6 +12,7 @@ import (
 	"go-practice/internal/handlers"
 	"go-practice/internal/middleware"
 	"go-practice/internal/services"
+	"go-practice/migrations"
 
 	_ "go-practice/docs"
 
@@ -512,7 +513,9 @@ func connectToDatabase(cfg *Config) (*gorm.DB, error) {
 		cfg.Database.User, cfg.Database.Host, cfg.Database.Port, cfg.Database.Name)
 
 	// Налаштування GORM конфігурації
-	gormConfig := &gorm.Config{}
+	gormConfig := &gorm.Config{
+		DisableForeignKeyConstraintWhenMigrating: true,
+	}
 
 	// В debug режимі включаємо логування SQL запитів
 	if cfg.IsDevelopment() {
@@ -551,11 +554,76 @@ func connectToDatabase(cfg *Config) (*gorm.DB, error) {
 	logrus.Infof("📊 Database connection pool configured: MaxOpen=%d, MaxIdle=%d, MaxLifetime=%v",
 		cfg.Database.MaxOpenConnections, cfg.Database.MaxIdleConnections, connectionMaxLifetime)
 
-	// Автоматична міграція таблиць
-	if err := db.AutoMigrate(&services.User{}); err != nil {
+	// Автоматична міграція тільки для моделей, які мають GORM-структури
+	logrus.Info("🛠️  Running AutoMigrate for User and Friendship...")
+	if err := db.AutoMigrate(
+		&services.User{},
+		&migrations.Friendship{},
+	); err != nil {
 		return nil, fmt.Errorf("failed to migrate database: %w", err)
 	}
 
 	logrus.Info("✅ Database connection established and migrated")
 	return db, nil
+}
+
+// RunMigrations виконує тільки міграції без запуску сервера
+func RunMigrations(cfg *Config) error {
+	dsn := cfg.GetDatabaseDSN()
+	logrus.Infof("🔌 Connecting to PostgreSQL database for migrations: %s@%s:%d/%s",
+		cfg.Database.User, cfg.Database.Host, cfg.Database.Port, cfg.Database.Name)
+
+	// Налаштування GORM конфігурації
+	gormConfig := &gorm.Config{
+		DisableForeignKeyConstraintWhenMigrating: true,
+	}
+
+	// В debug режимі включаємо логування SQL запитів
+	if cfg.IsDevelopment() {
+		gormConfig.Logger = logger.Default.LogMode(logger.Info)
+	}
+
+	// Підключення до бази даних
+	db, err := gorm.Open(postgres.Open(dsn), gormConfig)
+	if err != nil {
+		return fmt.Errorf("failed to connect to database: %w", err)
+	}
+
+	// Отримання sqlDB для тестування підключення
+	sqlDB, err := db.DB()
+	if err != nil {
+		return fmt.Errorf("failed to get underlying sql.DB: %w", err)
+	}
+
+	// Тест підключення
+	if err := sqlDB.Ping(); err != nil {
+		return fmt.Errorf("failed to ping database: %w", err)
+	}
+
+	logrus.Info("🛠️  Running migrations for new tables only...")
+
+	// Перевіряємо чи існує таблиця friendships
+	var exists bool
+	err = db.Raw("SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'friendships')").Scan(&exists).Error
+	if err != nil {
+		return fmt.Errorf("failed to check if friendships table exists: %w", err)
+	}
+
+	if !exists {
+		logrus.Info("Creating friendships table...")
+		// Створюємо тільки таблицю friendships, не чіпаємо users
+		if err := db.AutoMigrate(&migrations.Friendship{}); err != nil {
+			return fmt.Errorf("failed to create friendships table: %w", err)
+		}
+		logrus.Info("✅ Friendships table created successfully")
+	} else {
+		logrus.Info("Friendships table already exists, skipping...")
+	}
+
+	logrus.Info("✅ Database migrations completed successfully")
+
+	// Закриваємо з'єднання
+	sqlDB.Close()
+
+	return nil
 }
