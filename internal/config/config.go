@@ -443,6 +443,7 @@ func setupRoutes(r *gin.Engine, cfg *Config, db *gorm.DB) {
 			protected.PUT("/profile", apiHandler.UpdateProfile)
 			protected.GET("/user-data", apiHandler.UserData)
 			protected.GET("/users", apiHandler.Users)
+			protected.GET("/user/:id", apiHandler.GetUserByID)
 		}
 
 		// Database test endpoint
