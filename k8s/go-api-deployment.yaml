@@ -19,7 +19,6 @@ spec:
     metadata:
       annotations:
         kubectl.kubernetes.io/restartedAt: "2025-08-02T12:58:03Z"
-    metadata:
       labels:
         app: go-api
     spec:
