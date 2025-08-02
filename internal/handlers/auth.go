@@ -67,7 +67,7 @@ func (h *AuthHandler) Login(c *gin.Context) {
 
 	redirectURI := c.Query("redirect_uri")
 	if redirectURI == "" {
-		redirectURI = "https://api.example.com/auth/callback"
+		redirectURI = "http://localhost:8080/auth/callback"
 	}
 
 	response, err := h.authService.Login(redirectURI)
