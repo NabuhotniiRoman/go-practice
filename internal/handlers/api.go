@@ -22,6 +22,79 @@ func NewAPIHandler(userService services.UserService) *APIHandler {
 	}
 }
 
+// AddFriend додає користувача в друзі
+// @Summary Add Friend
+// @Description Додає користувача в друзі
+// @Tags api
+// @Accept json
+// @Produce json
+// @Param friend_id body string true "ID користувача, якого додаємо в друзі"
+// @Security BearerAuth
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 409 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
+// @Router /api/v1/friends/add [post]
+func (h *APIHandler) AddFriend(c *gin.Context) {
+	userID, exists := middleware.GetCurrentUserID(c)
+	if !exists {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to get user ID from context",
+		})
+		return
+	}
+
+	var req struct {
+		FriendID string `json:"friend_id"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil || req.FriendID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid or missing friend_id",
+		})
+		return
+	}
+
+	// Не можна додати себе в друзі
+	if req.FriendID == userID {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Cannot add yourself as a friend",
+		})
+		return
+	}
+
+	// Перевіряємо чи вже є в друзях
+	isFriend, err := h.userService.AreFriends(userID, req.FriendID)
+	if err != nil {
+		logrus.WithError(err).Error("Failed to check friendship")
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to check friendship",
+		})
+		return
+	}
+	if isFriend {
+		c.JSON(http.StatusConflict, gin.H{
+			"error": "User is already your friend",
+		})
+		return
+	}
+
+	// Додаємо в друзі
+	err = h.userService.AddFriend(userID, req.FriendID)
+	if err != nil {
+		logrus.WithError(err).Error("Failed to add friend")
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to add friend",
+		})
+		return
+	}
+
+	logrus.WithFields(logrus.Fields{"user_id": userID, "friend_id": req.FriendID}).Info("Friend added successfully")
+	c.JSON(http.StatusOK, gin.H{
+		"message":   "Friend added successfully",
+		"friend_id": req.FriendID,
+	})
+}
+
 // PublicData повертає публічні дані (без автентифікації)
 // @Summary Public Data
 // @Description Повертає публічні дані (без автентифікації)
@@ -197,11 +270,6 @@ func (h *APIHandler) UpdateProfile(c *gin.Context) {
 // @Failure 400 {object} map[string]interface{}
 // @Failure 500 {object} map[string]interface{}
 // @Router /api/v1/users/search [post]
-
-// {
-//     "user_name": "ro"
-// }
-
 func (h *APIHandler) SearchUsers(c *gin.Context) {
 	var request struct {
 		UserName string `json:"user_name"`

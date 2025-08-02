@@ -137,6 +137,45 @@ func (s *userService) ValidatePassword(email, password string) (*User, error) {
 	return user, nil
 }
 
+// AreFriends перевіряє чи користувачі є друзями
+func (s *userService) AreFriends(userID, friendID string) (bool, error) {
+	var exists bool
+	err := s.db.Raw(`
+		SELECT EXISTS (
+			SELECT 1 FROM friendships
+			WHERE user_id = ? AND friend_id = ?
+		)
+	`, userID, friendID).Scan(&exists).Error
+	if err != nil {
+		return false, err
+	}
+	return exists, nil
+}
+
+// AddFriend додає користувача в друзі
+func (s *userService) AddFriend(userID, friendID string) error {
+	// Додаємо запис у friendships
+	type Friendship struct {
+		UserID    string `gorm:"type:uuid;not null;index"`
+		FriendID  string `gorm:"type:uuid;not null;index"`
+		CreatedAt time.Time
+		UpdatedAt time.Time
+	}
+	friendship := Friendship{
+		UserID:    userID,
+		FriendID:  friendID,
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+	}
+	// Використовуємо INSERT IGNORE через ON CONFLICT DO NOTHING
+	err := s.db.Exec(`
+		INSERT INTO friendships (user_id, friend_id, created_at, updated_at)
+		VALUES (?, ?, ?, ?)
+		ON CONFLICT (user_id, friend_id) DO NOTHING
+	`, friendship.UserID, friendship.FriendID, friendship.CreatedAt, friendship.UpdatedAt).Error
+	return err
+}
+
 // UpdateUser оновлює дані користувача
 func (s *userService) UpdateUser(userID string, updates map[string]interface{}) error {
 	updates["updated_at"] = time.Now()
