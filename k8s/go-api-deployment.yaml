@@ -31,6 +31,8 @@ spec:
               echo "Running database migrations..."
               cat > /tmp/migration.hcl << 'EOF'
               server {
+                host = "0.0.0.0"
+                port = 8080
                 environment = "production"
                 log_level = "info"
                 log_format = "text"
