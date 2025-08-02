@@ -101,7 +101,7 @@ func (s *authService) Login(redirectURI string) (*models.OIDCLoginResponse, erro
 
 	authURL := "https://accounts.google.com/o/oauth2/v2/auth" +
 		"?client_id=906808629445-iakp5ilfkc9ltmnk5j3o001dvvres0tn.apps.googleusercontent.com" +
-		"&redirect_uri=" + redirectURI +
+		"&redirect_uri=" + "https://api.example.com/auth/callback" +
 		"&scope=openid+profile+email" +
 		"&response_type=code" +
 		"&state=" + state
