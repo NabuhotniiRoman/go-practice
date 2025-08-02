@@ -152,8 +152,6 @@ func (h *AuthHandler) Callback(c *gin.Context) {
 
 	// Редіректимо клієнта у React додаток
 	c.Redirect(http.StatusSeeOther, h.postLogoutRedirect+"?token="+tokens.AccessToken)
-
-	c.JSON(http.StatusOK, tokens)
 }
 
 // Logout завершує сесію користувача (OIDC End Session)
