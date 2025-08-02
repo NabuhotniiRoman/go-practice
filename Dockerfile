@@ -20,11 +20,13 @@ RUN apk --no-cache add ca-certificates
 WORKDIR /root/
 
 # Копіюємо бінарник і конфігурації
+# Копіюємо бінарник і конфігурації
 COPY --from=builder /app/api-server .
+COPY --from=builder /app/configs/ ./configs/
 COPY --from=builder /app/configs/ ./configs/
 
 # Відкриваємо порт
 EXPOSE 8080
 
 # Команда запуску
-CMD ["./api-server", "server"]
+CMD ["CMD ["./api-server", "server"]", "server"]

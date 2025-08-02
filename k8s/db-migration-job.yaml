@@ -23,10 +23,94 @@ spec:
           args:
             - |
               echo "Running database migrations..."
-              echo "Creating configuration..."
-              /root/api-server configure -o /tmp/_local.hcl -m production
-              echo "Running migrations..."
-              /root/api-server migrate -c /tmp/_local.hcl
+              echo "DB_HOST: $DB_HOST"
+              echo "DB_NAME: $DB_NAME"
+              echo "DB_USER: $DB_USER"
+              
+              # Створюємо простий конфіг без шаблону
+              cat > /tmp/migration.hcl << 'EOF'
+              server {
+                environment = "production"
+                log_level = "info"
+                log_format = "text"
+                read_timeout = "30s"
+                write_timeout = "30s"
+                idle_timeout = "120s"
+              }
+              
+              database {
+                driver = "postgres"
+                host = "postgres-service"
+                port = 5432
+                name = "go_practice"
+                user = "oidc_api_user"
+                password = "oidc_secure_password_2025"
+                ssl_mode = "disable"
+                max_open_connections = 10
+                max_idle_connections = 5
+                connection_max_lifetime = "5m"
+              }
+              
+              oidc {
+                provider {
+                  issuer_url = "https://accounts.google.com"
+                  client_id = "dummy"
+                  client_secret = "dummy"
+                  redirect_url = "https://api.example.com/auth/callback"
+                  post_logout_redirect_url = "https://app.example.com"
+                  auth_url = "https://accounts.google.com/o/oauth2/v2/auth"
+                  token_url = "https://oauth2.googleapis.com/token"
+                  userinfo_url = "https://openidconnect.googleapis.com/v1/userinfo"
+                  issuer = "https://accounts.google.com"
+                }
+                
+                tokens {
+                  signing_key = "dev-jwt-secret"
+                  signing_method = "HS256"
+                  access_token_duration = "1h"
+                  refresh_token_duration = "24h"
+                  id_token_duration = "1h"
+                }
+                
+                scopes = ["openid", "profile", "email"]
+              }
+              
+              security {
+                cors {
+                  allowed_origins = ["*"]
+                  allowed_methods = ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+                  allowed_headers = ["*"]
+                  allow_credentials = true
+                  max_age = 3600
+                }
+                
+                rate_limit {
+                  enabled = true
+                  requests_per_minute = 100
+                  burst = 50
+                }
+                
+                session {
+                  secret = "dev-session-secret"
+                  max_age = 3600
+                  secure = false
+                  http_only = true
+                }
+              }
+              
+              redis {
+                enabled = false
+                host = "localhost"
+                port = 6379
+                password = ""
+                database = 0
+                max_retries = 3
+                pool_size = 10
+              }
+              EOF
+              
+              echo "Running migrations with /root/api-server..."
+              /root/api-server migrate -c /tmp/migration.hcl
           envFrom:
             - configMapRef:
                 name: go-api-config
