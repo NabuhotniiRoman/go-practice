@@ -96,7 +96,7 @@ func (s *authService) Login(redirectURI string) (*models.OIDCLoginResponse, erro
 
 	// Формуємо URL для OIDC провайдера (приклад для Google)
 	if redirectURI == "" {
-		redirectURI = "http://localhost:8080/auth/callback"
+		redirectURI = "https://api.example.com/auth/callback"
 	}
 
 	authURL := "https://accounts.google.com/o/oauth2/v2/auth" +
@@ -145,7 +145,7 @@ func (s *authService) HandleCallback(code, state string) (*models.Token, *models
 	}
 
 	// Обмінюємо authorization code на токени з OIDC провайдера
-	providerTokens, err := s.oidcProviderService.ExchangeCodeForTokens(code, "http://localhost:8080/auth/callback")
+	providerTokens, err := s.oidcProviderService.ExchangeCodeForTokens(code, "https://api.example.com/auth/callback")
 	if err != nil {
 		logrus.WithError(err).Error("Failed to exchange code for tokens")
 		return nil, nil, err
