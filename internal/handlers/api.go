@@ -186,6 +186,42 @@ func (h *APIHandler) UpdateProfile(c *gin.Context) {
 	})
 }
 
+// GetUserByID повертає користувача за його ID
+// @Summary Get User By ID
+// @Description Повертає користувача за його ID
+// @Tags api
+// @Produce json
+// @Param id path string true "User ID"
+// @Security BearerAuth
+// @Success 200 {object} map[string]interface{}
+// @Failure 404 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
+// @Router /api/v1/users/{id} [get]
+func (h *APIHandler) GetUserByID(c *gin.Context) {
+	id := c.Param("id")
+	if id == "" {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "User ID is required",
+		})
+		return
+	}
+
+	user, err := h.userService.GetUserByID(id)
+	if err != nil {
+		logrus.WithError(err).WithField("user_id", id).Error("Failed to get user by ID")
+		c.JSON(http.StatusNotFound, gin.H{
+			"error":   "User not found",
+			"details": err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "User retrieved successfully",
+		"user":    user,
+	})
+}
+
 // @Router /api/v1/users [get]
 func (h *APIHandler) Users(c *gin.Context) {
 	users, err := h.userService.GetAllUsers()
