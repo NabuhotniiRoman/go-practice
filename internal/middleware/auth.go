@@ -7,6 +7,7 @@ import (
 	"go-practice/internal/services"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 )
 
@@ -118,4 +119,27 @@ func GetCurrentUserID(c *gin.Context) (string, bool) {
 
 	userIDStr, ok := userID.(string)
 	return userIDStr, ok
+}
+
+// GetCurrentID витягує ID поточного користувача з контексту
+func GetCurrentID(c *gin.Context) uuid.UUID {
+	id, exists := c.Get("id")
+	if !exists {
+		return uuid.Nil
+	}
+
+	// Перевіряємо чи значення дійсно uuid.UUID типу
+	if uid, ok := id.(uuid.UUID); ok {
+		return uid
+	}
+
+	// Якщо id збережений як string, пробуємо розпарсити
+	if strID, ok := id.(string); ok {
+		parsed, err := uuid.Parse(strID)
+		if err == nil {
+			return parsed
+		}
+	}
+
+	return uuid.Nil
 }

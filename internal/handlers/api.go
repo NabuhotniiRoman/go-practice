@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"net/http"
+	"strings"
 
 	"go-practice/internal/middleware"
 	"go-practice/internal/services"
@@ -39,8 +40,8 @@ func NewAPIHandler(userService services.UserService) *APIHandler {
 func (h *APIHandler) AddFriend(c *gin.Context) {
 	logrus.Info("AddFriend handler called - маршрут працює!")
 
-	userIDStr, exists := middleware.GetCurrentUserID(c)
-	if !exists {
+	userUUID := middleware.GetCurrentID(c)
+	if userUUID == uuid.Nil {
 		logrus.Error("Failed to get user ID from context in AddFriend")
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "Failed to get user ID from context",
@@ -58,25 +59,23 @@ func (h *APIHandler) AddFriend(c *gin.Context) {
 		return
 	}
 
-	// Парсимо UUID
-	userUUID, err := uuid.Parse(userIDStr)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Invalid user_id format",
-		})
-		return
+	rawID := strings.TrimSpace(req.FriendID)
+
+	// Якщо є префікс "usr_", видаляємо його
+	if after, ok := strings.CutPrefix(rawID, "usr_"); ok {
+		rawID = after
 	}
 
-	friendUUID, err := uuid.Parse(req.FriendID)
+	friendUUID, err := uuid.Parse(rawID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Invalid friend_id format",
+			"error": "Invalid UUID format for friend_id",
 		})
 		return
 	}
 
 	// Не можна додати себе в друзі
-	if userUUID == friendUUID {
+	if friendUUID == userUUID {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "Cannot add yourself as a friend",
 		})
@@ -109,10 +108,14 @@ func (h *APIHandler) AddFriend(c *gin.Context) {
 		return
 	}
 
-	logrus.WithFields(logrus.Fields{"user_id": userUUID.String(), "friend_id": friendUUID.String()}).Info("Friend added successfully")
+	logrus.WithFields(logrus.Fields{
+		"user_id":   userUUID,
+		"friend_id": friendUUID,
+	}).Info("Friend added successfully")
+
 	c.JSON(http.StatusOK, gin.H{
 		"message":   "Friend added successfully",
-		"friend_id": friendUUID.String(),
+		"friend_id": friendUUID,
 	})
 }
 

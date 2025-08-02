@@ -138,7 +138,7 @@ func (s *userService) ValidatePassword(email, password string) (*User, error) {
 	return user, nil
 }
 
-// AreFriends перевіряє чи користувачі є друзями
+// AreFriends перевіряє чи є користувачі друзями
 func (s *userService) AreFriends(userID, friendID uuid.UUID) (bool, error) {
 	var exists bool
 	err := s.db.Raw(`
