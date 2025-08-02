@@ -95,9 +95,7 @@ func (s *authService) Login(redirectURI string) (*models.OIDCLoginResponse, erro
 	}
 
 	// Формуємо URL для OIDC провайдера (приклад для Google)
-	if redirectURI == "" {
-		redirectURI = "https://api.example.com/auth/callback"
-	}
+	redirectURI = "https://api.example.com/auth/callback"
 
 	authURL := "https://accounts.google.com/o/oauth2/v2/auth" +
 		"?client_id=906808629445-iakp5ilfkc9ltmnk5j3o001dvvres0tn.apps.googleusercontent.com" +
