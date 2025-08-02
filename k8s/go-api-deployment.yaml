@@ -17,12 +17,15 @@ spec:
       maxUnavailable: 25%
   template:
     metadata:
+      annotations:
+        kubectl.kubernetes.io/restartedAt: "2025-08-02T12:58:03Z"
+    metadata:
       labels:
         app: go-api
     spec:
       containers:
       - name: go-api
-        image: nabuhotnii/go-api:af778ef40e27603f21f63b18a024fe8fb7ad04b8
+        image: nabuhotnii/go-api:fb3d0da8228fe53afa2e8852602d07065f184cf9
         imagePullPolicy: Always
         ports:
         - containerPort: 8080
