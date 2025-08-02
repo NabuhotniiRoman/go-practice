@@ -61,7 +61,7 @@ func loadConfigFromEnv() *config.Config {
 				IssuerURL:             getEnv("OIDC_ISSUER_URL", ""),
 				ClientID:              getEnv("OIDC_CLIENT_ID", ""),
 				ClientSecret:          getEnv("OIDC_CLIENT_SECRET", ""),
-				RedirectURL:           getEnv("OIDC_REDIRECT_URL", "http://192.168.49.2:30500/auth/callback"),
+				RedirectURL:           getEnv("OIDC_REDIRECT_URL", "https://api.example.com/auth/callback"),
 				PostLogoutRedirectURL: getEnv("OIDC_POST_LOGOUT_URL", "http://192.168.49.2:30500"),
 				AuthURL:               getEnv("OIDC_AUTH_URL", ""),
 				TokenURL:              getEnv("OIDC_TOKEN_URL", ""),
