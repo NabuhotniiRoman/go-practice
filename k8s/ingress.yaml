@@ -21,6 +21,13 @@ spec:
             name: go-api-service
             port:
               number: 8080
+      - path: /api/v1
+        pathType: Prefix
+        backend:
+          service:
+            name: go-api-service
+            port:
+              number: 8080
   - host: app.local
     http:
       paths:

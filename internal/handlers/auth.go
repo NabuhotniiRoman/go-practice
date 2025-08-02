@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"go-practice/internal/models"
 	"go-practice/internal/services"
 	"net/http"
@@ -150,8 +151,10 @@ func (h *AuthHandler) Callback(c *gin.Context) {
 		"user_id": user.ID,
 	}).Info("OIDC callback processed successfully")
 
-	// Редіректимо клієнта у React додаток
-	c.Redirect(http.StatusSeeOther, h.postLogoutRedirect+"?token="+tokens.AccessToken)
+	// Редіректимо клієнта у React додаток з обома токенами
+	redirectURL := fmt.Sprintf("%s?access_token=%s&refresh_token=%s",
+		h.postLogoutRedirect, tokens.AccessToken, tokens.RefreshToken)
+	c.Redirect(http.StatusSeeOther, redirectURL)
 }
 
 // Logout завершує сесію користувача (OIDC End Session)

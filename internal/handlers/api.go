@@ -186,6 +186,24 @@ func (h *APIHandler) UpdateProfile(c *gin.Context) {
 	})
 }
 
+// @Router /api/v1/users [get]
+func (h *APIHandler) Users(c *gin.Context) {
+	users, err := h.userService.GetAllUsers()
+	if err != nil {
+		logrus.WithError(err).Error("Failed to get users")
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":   "Failed to retrieve users",
+			"details": err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Users retrieved successfully",
+		"data":    users,
+	})
+}
+
 // UserData повертає розширені дані користувача
 // @Summary User Data
 // @Description Повертає розширені дані користувача

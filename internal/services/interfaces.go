@@ -19,6 +19,7 @@ type AuthService interface {
 
 // UserService інтерфейс для роботи з користувачами
 type UserService interface {
+	GetAllUsers() ([]User, error)
 	RegisterUser(req models.RegisterRequest) (*models.RegisterResponse, error)
 	GetUserByEmail(email string) (*User, error)
 	GetUserByID(id string) (*User, error)

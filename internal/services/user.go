@@ -25,6 +25,14 @@ func NewUserService(db *gorm.DB) UserService {
 	}
 }
 
+func (s *userService) GetAllUsers() ([]User, error) {
+	var users []User
+	if err := s.db.Where("is_active = ?", true).Find(&users).Error; err != nil {
+		return nil, fmt.Errorf("failed to get users: %w", err)
+	}
+	return users, nil
+}
+
 // RegisterUser реєструє нового користувача
 func (s *userService) RegisterUser(req models.RegisterRequest) (*models.RegisterResponse, error) {
 	// Перевіряємо чи користувач вже існує
