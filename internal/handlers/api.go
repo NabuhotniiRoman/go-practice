@@ -196,12 +196,28 @@ func (h *APIHandler) UpdateProfile(c *gin.Context) {
 // @Success 200 {object} map[string]interface{}
 // @Failure 400 {object} map[string]interface{}
 // @Failure 500 {object} map[string]interface{}
-// @Router /api/v1/users/search [get]
+// @Router /api/v1/users/search [post]
+
+// {
+//     "user_name": "ro"
+// }
+
 func (h *APIHandler) SearchUsers(c *gin.Context) {
-	query := c.Query("q")
+	var request struct {
+		UserName string `json:"user_name"`
+	}
+	if err := c.ShouldBindJSON(&request); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error":   "Invalid request payload",
+			"details": err.Error(),
+		})
+		return
+	}
+
+	query := request.UserName
 	if query == "" {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Search query 'q' is required",
+			"error": "Search query 'user_name' is required",
 		})
 		return
 	}
