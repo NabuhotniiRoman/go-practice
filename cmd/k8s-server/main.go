@@ -81,9 +81,11 @@ func loadConfigFromEnv() *config.Config {
 		Security: config.SecurityConfig{
 			CORS: config.CORSConfig{
 				AllowedOrigins: []string{
-					"http://192.168.49.2:30090", // Frontend URL
+					"http://192.168.49.2:30090", // Frontend URL (NodePort)
 					"http://localhost:3000",     // Local development
 					"http://127.0.0.1:3000",     // Local development alternative
+					"http://app.local",          // Frontend via Ingress
+					"http://api.local",          // API via Ingress (for CORS preflight)
 				},
 				AllowedMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 				AllowedHeaders: []string{

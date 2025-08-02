@@ -15,6 +15,8 @@ data:
   OIDC_TOKEN_URL: "https://oauth2.googleapis.com/token"
   OIDC_USERINFO_URL: "https://openidconnect.googleapis.com/v1/userinfo"
   OIDC_ISSUER: "https://accounts.google.com"
+  OIDC_REDIRECT_URL: "http://localhost:8080/auth/callback"
+  OIDC_POST_LOGOUT_URL: "http://localhost:3000"
   
   # App config
   PORT: "8080"

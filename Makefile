@@ -5,7 +5,7 @@ MODULE_NAME := go-practice
 BUILD_VERSION ?= $(shell git describe --tags --always --dirty 2>/dev/null || echo "dev")
 BUILD_NUMBER ?= $(shell git rev-parse --short HEAD 2>/dev/null || echo "local")
 
-.PHONY: help build test clean run-api dev setup-db-local db-connect dependencies configure _local.hcl
+.PHONY: help build test clean run-api dev setup-db-local db-connect dependencies configure _local.hcl k8s-start k8s-stop k8s-status k8s-logs docker-build docker-push k8s-deploy
 
 # Показати допомогу
 help:
@@ -19,6 +19,14 @@ help:
 	@echo "  dependencies    - Install dependencies"
 	@echo "  setup-db-local  - Setup PostgreSQL database locally"
 	@echo "  db-connect      - Connect to the database"
+	@echo ""
+	@echo "Kubernetes commands:"
+	@echo "  k8s-start       - Start port forwarding (API: 8080, Frontend: 3000)"
+	@echo "  k8s-stop        - Stop all port forwarding"
+	@echo "  k8s-status      - Show Kubernetes status"
+	@echo "  k8s-logs        - Show API logs"
+	@echo "  docker-build    - Build and push Docker images"
+	@echo "  k8s-deploy      - Deploy to Kubernetes via ArgoCD"
 
 # Залежності
 dependencies:
@@ -74,3 +82,52 @@ db-connect:
 
 swagger:
 	swag init -g cmd/api-server/main.go
+
+# Kubernetes команди
+k8s-start:
+	@echo "🚀 Starting port forwarding..."
+	@echo "   - Go API: http://localhost:8080"
+	@echo "   - React Frontend: http://localhost:3000"
+	@echo ""
+	@echo "Press Ctrl+C to stop"
+	@./scripts/port-forward.sh
+
+k8s-stop:
+	@echo "🛑 Stopping all port forwarding..."
+	@pkill -f "kubectl port-forward" || true
+	@echo "✅ Port forwarding stopped"
+
+k8s-status:
+	@echo "📊 Kubernetes Status:"
+	@echo ""
+	@echo "Pods:"
+	@kubectl get pods -l app=go-api
+	@kubectl get pods -l app=react-frontend
+	@echo ""
+	@echo "Services:"
+	@kubectl get svc go-api-service react-frontend-service
+	@echo ""
+	@echo "ArgoCD Applications:"
+	@kubectl get applications -n argocd
+
+k8s-logs:
+	@echo "📋 API Server Logs (last 50 lines):"
+	@kubectl logs -l app=go-api --tail=50
+
+docker-build:
+	@echo "🐳 Building Docker images..."
+	@cd .. && docker build -t nabuhotnii/go-practice:latest -f go-practice/Dockerfile go-practice/
+	@cd ../go-practice-ui && docker build -t nabuhotnii/go-practice-ui:latest .
+	@echo "✅ Docker images built"
+
+docker-push: docker-build
+	@echo "📤 Pushing Docker images..."
+	@docker push nabuhotnii/go-practice:latest
+	@docker push nabuhotnii/go-practice-ui:latest
+	@echo "✅ Docker images pushed"
+
+k8s-deploy: docker-push
+	@echo "🚀 Triggering ArgoCD sync..."
+	@kubectl patch app my-go-api -n argocd --type merge -p '{"operation":{"sync":{"revision":"HEAD"}}}'
+	@kubectl patch app my-react-frontend -n argocd --type merge -p '{"operation":{"sync":{"revision":"HEAD"}}}'
+	@echo "✅ ArgoCD sync triggered"
