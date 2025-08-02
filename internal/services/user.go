@@ -84,6 +84,18 @@ func (s *userService) RegisterUser(req models.RegisterRequest) (*models.Register
 	return response, nil
 }
 
+// SearchUsers
+func (s *userService) SearchUsers(query string) ([]User, error) {
+	var users []User
+	if err := s.db.Where(
+		"is_active = ? AND (LOWER(name) LIKE LOWER(?) OR LOWER(email) LIKE LOWER(?))",
+		true, "%"+query+"%", "%"+query+"%",
+	).Find(&users).Error; err != nil {
+		return nil, fmt.Errorf("failed to search users: %w", err)
+	}
+	return users, nil
+}
+
 // GetUserByEmail отримує користувача за email
 func (s *userService) GetUserByEmail(email string) (*User, error) {
 	var user User

@@ -186,6 +186,42 @@ func (h *APIHandler) UpdateProfile(c *gin.Context) {
 	})
 }
 
+// SearchUsers дозволяє шукати користувачів за ім'ям або email
+// @Summary Search Users
+// @Description Пошук користувачів за ім'ям або email
+// @Tags api
+// @Produce json
+// @Param q query string true "Пошуковий запит (name або email)"
+// @Security BearerAuth
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
+// @Router /api/v1/users/search [get]
+func (h *APIHandler) SearchUsers(c *gin.Context) {
+	query := c.Query("q")
+	if query == "" {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Search query 'q' is required",
+		})
+		return
+	}
+
+	users, err := h.userService.SearchUsers(query)
+	if err != nil {
+		logrus.WithError(err).WithField("query", query).Error("Failed to search users")
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":   "Failed to search users",
+			"details": err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Users search successful",
+		"data":    users,
+	})
+}
+
 // GetUserByID повертає користувача за його ID
 // @Summary Get User By ID
 // @Description Повертає користувача за його ID

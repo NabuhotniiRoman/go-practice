@@ -22,6 +22,7 @@ type UserService interface {
 	GetAllUsers() ([]User, error)
 	RegisterUser(req models.RegisterRequest) (*models.RegisterResponse, error)
 	GetUserByEmail(email string) (*User, error)
+	SearchUsers(query string) ([]User, error)
 	GetUserByID(id string) (*User, error)
 	ValidatePassword(email, password string) (*User, error)
 	UpdateUser(userID string, updates map[string]interface{}) error
