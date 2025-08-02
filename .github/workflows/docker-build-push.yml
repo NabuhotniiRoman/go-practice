@@ -41,8 +41,8 @@ jobs:
       run: |
         # Оновлюємо тег образу
         yq -i '.spec.template.spec.containers[0].image = "nabuhotnii/go-api:${{ github.sha }}"' k8s/go-api-deployment.yaml
-        # Додаємо/оновлюємо анотацію (завжди оновлює, не створює дубль)
-        yq -i 'with(.spec.template.metadata; .annotations //= {} | .annotations."kubectl.kubernetes.io/restartedAt" = env(TIMESTAMP))' k8s/go-api-deployment.yaml
+        # Додаємо/оновлюємо анотацію (без дублювання)
+        yq -i '.spec.template.metadata.annotations."kubectl.kubernetes.io/restartedAt" = env(TIMESTAMP)' k8s/go-api-deployment.yaml
       env:
         TIMESTAMP: ${{ steps.set-timestamp.outputs.timestamp }}
         
