@@ -7,6 +7,7 @@ import (
 	"go-practice/internal/services"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 )
 
@@ -38,7 +39,7 @@ func NewAPIHandler(userService services.UserService) *APIHandler {
 func (h *APIHandler) AddFriend(c *gin.Context) {
 	logrus.Info("AddFriend handler called - маршрут працює!")
 
-	userID, exists := middleware.GetCurrentUserID(c)
+	userIDStr, exists := middleware.GetCurrentUserID(c)
 	if !exists {
 		logrus.Error("Failed to get user ID from context in AddFriend")
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -57,8 +58,24 @@ func (h *APIHandler) AddFriend(c *gin.Context) {
 		return
 	}
 
+	// Перевіряємо, що userID і friendID - валідні UUID
+	userUUID, err := uuid.Parse(userIDStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid user_id format",
+		})
+		return
+	}
+	friendUUID, err := uuid.Parse(req.FriendID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid friend_id format",
+		})
+		return
+	}
+
 	// Не можна додати себе в друзі
-	if req.FriendID == userID {
+	if userUUID == friendUUID {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "Cannot add yourself as a friend",
 		})
@@ -66,7 +83,7 @@ func (h *APIHandler) AddFriend(c *gin.Context) {
 	}
 
 	// Перевіряємо чи вже є в друзях
-	isFriend, err := h.userService.AreFriends(userID, req.FriendID)
+	isFriend, err := h.userService.AreFriends(userUUID.String(), friendUUID.String())
 	if err != nil {
 		logrus.WithError(err).Error("Failed to check friendship")
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -82,7 +99,7 @@ func (h *APIHandler) AddFriend(c *gin.Context) {
 	}
 
 	// Додаємо в друзі
-	err = h.userService.AddFriend(userID, req.FriendID)
+	err = h.userService.AddFriend(userUUID.String(), friendUUID.String())
 	if err != nil {
 		logrus.WithError(err).Error("Failed to add friend")
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -91,10 +108,10 @@ func (h *APIHandler) AddFriend(c *gin.Context) {
 		return
 	}
 
-	logrus.WithFields(logrus.Fields{"user_id": userID, "friend_id": req.FriendID}).Info("Friend added successfully")
+	logrus.WithFields(logrus.Fields{"user_id": userUUID.String(), "friend_id": friendUUID.String()}).Info("Friend added successfully")
 	c.JSON(http.StatusOK, gin.H{
 		"message":   "Friend added successfully",
-		"friend_id": req.FriendID,
+		"friend_id": friendUUID.String(),
 	})
 }
 
