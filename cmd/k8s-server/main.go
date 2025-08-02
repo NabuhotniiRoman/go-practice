@@ -62,7 +62,7 @@ func loadConfigFromEnv() *config.Config {
 				ClientID:              getEnv("OIDC_CLIENT_ID", ""),
 				ClientSecret:          getEnv("OIDC_CLIENT_SECRET", ""),
 				RedirectURL:           getEnv("OIDC_REDIRECT_URL", "http://localhost:8080/auth/callback"),
-				PostLogoutRedirectURL: getEnv("OIDC_POST_LOGOUT_URL", "http://localhost:8080"),
+				PostLogoutRedirectURL: getEnv("OIDC_POST_LOGOUT_URL", "http://localhost:3000"),
 				AuthURL:               getEnv("OIDC_AUTH_URL", ""),
 				TokenURL:              getEnv("OIDC_TOKEN_URL", ""),
 				UserInfoURL:           getEnv("OIDC_USERINFO_URL", ""),
@@ -80,9 +80,21 @@ func loadConfigFromEnv() *config.Config {
 
 		Security: config.SecurityConfig{
 			CORS: config.CORSConfig{
-				AllowedOrigins:   []string{"*"},
-				AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-				AllowedHeaders:   []string{"*"},
+				AllowedOrigins: []string{
+					"http://192.168.49.2:30090", // Frontend URL
+					"http://localhost:3000",     // Local development
+					"http://127.0.0.1:3000",     // Local development alternative
+				},
+				AllowedMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+				AllowedHeaders: []string{
+					"Content-Type",
+					"Authorization",
+					"X-Requested-With",
+					"Accept",
+					"Origin",
+					"Access-Control-Request-Method",
+					"Access-Control-Request-Headers",
+				},
 				AllowCredentials: true,
 				MaxAge:           3600,
 			},
