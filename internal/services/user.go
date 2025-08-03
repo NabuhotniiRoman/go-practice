@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"fmt"
+	"strings"
 	"time"
 
 	"go-practice/internal/models"
@@ -305,7 +306,10 @@ func generateUserID() (string, error) {
 // GetFriends повертає список друзів користувача
 func (s *userService) GetFriends(userID string) ([]User, error) {
 	var friendIDs []string
-	err := s.db.Table("friendships").Select("friend_id").Where("user_id = ?", userID).Scan(&friendIDs).Error
+	err := s.db.Table("friendships").
+		Select("friend_id").
+		Where("user_id = ?", userID).
+		Scan(&friendIDs).Error
 	if err != nil {
 		return nil, fmt.Errorf("failed to get friend ids: %w", err)
 	}
@@ -313,8 +317,15 @@ func (s *userService) GetFriends(userID string) ([]User, error) {
 		return []User{}, nil
 	}
 
+	// 🔧 Повернути префікс "usr_" до friendIDs
+	for i, id := range friendIDs {
+		friendIDs[i] = "usr_" + strings.TrimSpace(id)
+	}
+
 	var friends []User
-	err = s.db.Where("id IN ? AND is_active = ?", friendIDs, true).Find(&friends).Error
+	err = s.db.
+		Where("id IN ? AND is_active = ?", friendIDs, true).
+		Find(&friends).Error
 	if err != nil {
 		return nil, fmt.Errorf("failed to get friends: %w", err)
 	}
