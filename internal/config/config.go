@@ -455,6 +455,7 @@ func setupRoutes(r *gin.Engine, cfg *Config, db *gorm.DB) {
 			protected.GET("/users/:id", apiHandler.GetUserByID)
 			protected.POST("/users/search", apiHandler.SearchUsers)
 			protected.POST("/friends/add", apiHandler.AddFriend)
+			protected.GET("/friends", apiHandler.GetFriends)
 		}
 
 		// Database test endpoint

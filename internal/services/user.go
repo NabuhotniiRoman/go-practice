@@ -301,3 +301,22 @@ func generateUserID() (string, error) {
 	}
 	return "usr_" + hex.EncodeToString(bytes), nil
 }
+
+// GetFriends повертає список друзів користувача
+func (s *userService) GetFriends(userID string) ([]User, error) {
+	var friendIDs []string
+	err := s.db.Table("friendships").Select("friend_id").Where("user_id = ?", userID).Scan(&friendIDs).Error
+	if err != nil {
+		return nil, fmt.Errorf("failed to get friend ids: %w", err)
+	}
+	if len(friendIDs) == 0 {
+		return []User{}, nil
+	}
+
+	var friends []User
+	err = s.db.Where("id IN ? AND is_active = ?", friendIDs, true).Find(&friends).Error
+	if err != nil {
+		return nil, fmt.Errorf("failed to get friends: %w", err)
+	}
+	return friends, nil
+}

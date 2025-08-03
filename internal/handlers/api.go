@@ -125,6 +125,46 @@ func (h *APIHandler) AddFriend(c *gin.Context) {
 	})
 }
 
+// GetFriends повертає список друзів поточного користувача
+// @Summary Get Friends
+// @Description Повертає список друзів поточного користувача
+// @Tags api
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
+// @Router /api/v1/friends [get]
+func (h *APIHandler) GetFriends(c *gin.Context) {
+	userID, ok := middleware.GetCurrentUserID(c)
+	if !ok {
+		logrus.Error("Failed to get user ID from context in GetFriends")
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to get user ID from context",
+		})
+		return
+	}
+
+	trimmedUserID := strings.TrimSpace(userID)
+	if after, ok := strings.CutPrefix(trimmedUserID, "usr_"); ok {
+		trimmedUserID = after
+	}
+
+	friends, err := h.userService.GetFriends(trimmedUserID)
+	if err != nil {
+		logrus.WithError(err).WithField("user_id", trimmedUserID).Error("Failed to get friends")
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":   "Failed to retrieve friends",
+			"details": err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Friends retrieved successfully",
+		"data":    friends,
+	})
+}
+
 // PublicData повертає публічні дані (без автентифікації)
 // @Summary Public Data
 // @Description Повертає публічні дані (без автентифікації)
