@@ -168,6 +168,11 @@ func (s *userService) AreFriends(userID, friendID string) (bool, error) {
 
 // AddFriend додає користувача в друзі
 func (s *userService) AddFriend(userID, friendID string) error {
+	logrus.WithFields(logrus.Fields{
+		"userID":   userID,
+		"friendID": friendID,
+	}).Info("AddFriend called")
+
 	type Friendship struct {
 		UserID    string `gorm:"type:text;not null;index"`
 		FriendID  string `gorm:"type:text;not null;index"`
@@ -186,11 +191,19 @@ func (s *userService) AddFriend(userID, friendID string) error {
 	var count int64
 	err := s.db.Model(&Friendship{}).Where("user_id = ? AND friend_id = ?", friendship.UserID, friendship.FriendID).Count(&count).Error
 	if err != nil {
+		logrus.WithError(err).Error("Failed to check existing friendship")
 		return err
 	}
 
+	logrus.WithFields(logrus.Fields{
+		"userID":   userID,
+		"friendID": friendID,
+		"count":    count,
+	}).Info("Checked existing friendship")
+
 	// Якщо вже існує - нічого не робимо
 	if count > 0 {
+		logrus.Info("Friendship already exists")
 		return nil
 	}
 
@@ -199,6 +212,16 @@ func (s *userService) AddFriend(userID, friendID string) error {
 		INSERT INTO friendships (user_id, friend_id, created_at, updated_at)
 		VALUES (?, ?, ?, ?)
 	`, friendship.UserID, friendship.FriendID, friendship.CreatedAt, friendship.UpdatedAt).Error
+
+	if err != nil {
+		logrus.WithError(err).Error("Failed to insert friendship")
+		return err
+	}
+
+	logrus.WithFields(logrus.Fields{
+		"userID":   userID,
+		"friendID": friendID,
+	}).Info("Friendship added successfully")
 
 	return err
 }
@@ -305,29 +328,50 @@ func generateUserID() (string, error) {
 
 // GetFriends повертає список друзів користувача
 func (s *userService) GetFriends(userID string) ([]User, error) {
+	logrus.WithField("userID", userID).Info("GetFriends called")
+
 	var friendIDs []string
 	err := s.db.Table("friendships").
 		Select("friend_id").
 		Where("user_id = ?", userID).
 		Scan(&friendIDs).Error
 	if err != nil {
+		logrus.WithError(err).Error("Failed to get friend ids from database")
 		return nil, fmt.Errorf("failed to get friend ids: %w", err)
 	}
+
+	logrus.WithFields(logrus.Fields{
+		"userID":    userID,
+		"friendIDs": friendIDs,
+		"count":     len(friendIDs),
+	}).Info("Found friend IDs")
+
 	if len(friendIDs) == 0 {
 		return []User{}, nil
 	}
 
-	// 🔧 Повернути префікс "usr_" до friendIDs
-	for i, id := range friendIDs {
-		friendIDs[i] = "usr_" + strings.TrimSpace(id)
+	// Перевіряємо чи потрібно додавати префікс
+	var processedFriendIDs []string
+	for _, id := range friendIDs {
+		id = strings.TrimSpace(id)
+		// Якщо ID не має префікса usr_, додаємо його
+		if !strings.HasPrefix(id, "usr_") {
+			id = "usr_" + id
+		}
+		processedFriendIDs = append(processedFriendIDs, id)
 	}
+
+	logrus.WithField("processedFriendIDs", processedFriendIDs).Info("Processed friend IDs")
 
 	var friends []User
 	err = s.db.
-		Where("id IN ? AND is_active = ?", friendIDs, true).
+		Where("id IN ? AND is_active = ?", processedFriendIDs, true).
 		Find(&friends).Error
 	if err != nil {
+		logrus.WithError(err).Error("Failed to get friends from database")
 		return nil, fmt.Errorf("failed to get friends: %w", err)
 	}
+
+	logrus.WithField("friends_count", len(friends)).Info("Friends found in database")
 	return friends, nil
 }
