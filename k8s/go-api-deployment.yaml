@@ -18,7 +18,7 @@ spec:
   template:
     metadata:
       annotations:
-        kubectl.kubernetes.io/restartedAt: 2025-08-06T12:14:08Z
+        kubectl.kubernetes.io/restartedAt: 2025-08-06T12:33:02Z
       labels:
         app: go-api
     spec:
@@ -42,7 +42,7 @@ spec:
               cpu: "50m"
       containers:
         - name: go-api
-          image: nabuhotnii/go-api:d67bbafe502be68c3a3e6ade6f02efdb315b1e81
+          image: nabuhotnii/go-api:d4b9f8d01e690c7aca8a24a194e4d204be2ad269
           imagePullPolicy: Always
           command: ["/bin/sh", "-c"]
           args:
