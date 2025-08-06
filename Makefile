@@ -5,7 +5,7 @@ MODULE_NAME := go-practice
 BUILD_VERSION ?= $(shell git describe --tags --always --dirty 2>/dev/null || echo "dev")
 BUILD_NUMBER ?= $(shell git rev-parse --short HEAD 2>/dev/null || echo "local")
 
-.PHONY: help build test clean run-api dev setup-db-local db-connect dependencies configure _local.hcl k8s-start k8s-stop k8s-status k8s-logs docker-build docker-push k8s-deploy migrate argocd argocd-stop
+.PHONY: help build test clean run-api dev setup-db-local db-connect dependencies configure _local.hcl k8s-start k8s-stop k8s-status k8s-logs docker-build docker-push k8s-deploy migrate argocd argocd-stop frontend dev-full
 
 # Показати допомогу
 help:
@@ -25,12 +25,14 @@ help:
 	@echo "  k8s-stop        - Stop all port forwarding"
 	@echo "  k8s-status      - Show Kubernetes status"
 	@echo "  k8s-logs        - Show API logs"
+	@echo "  frontend        - Start frontend port forwarding only"
 	@echo "  docker-build    - Build and push Docker images"
 	@echo "  k8s-deploy      - Deploy to Kubernetes via ArgoCD"
 	@echo "  k8s-deploy-with-migrations - Deploy with automatic database migrations"
 	@echo "  k8s-migrate     - Run only database migrations in Kubernetes"
 	@echo "  argocd          - Start ArgoCD port forwarding and open in Chrome"
 	@echo "  argocd-stop     - Stop ArgoCD port forwarding"
+	@echo "  dev-full        - Start full dev environment (API + Frontend + Domain)"
 
 # Залежності
 dependencies:
@@ -180,3 +182,16 @@ argocd-stop:
 	@echo "🛑 Stopping ArgoCD port forwarding..."
 	@pkill -f "kubectl port-forward svc/argocd-server" || true
 	@echo "✅ ArgoCD port forwarding stopped"
+
+# Frontend команди
+frontend:
+	@echo "🚀 Starting frontend port forwarding..."
+	@echo "   - React Frontend: http://localhost:3000"
+	@echo ""
+	@echo "Starting port forwarding..."
+	@kubectl port-forward svc/react-frontend-service 3000:80
+
+# Development команди
+dev-full:
+	@echo "🚀 Starting full development environment..."
+	@./scripts/dev-full.sh
