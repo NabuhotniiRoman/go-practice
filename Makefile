@@ -5,7 +5,7 @@ MODULE_NAME := go-practice
 BUILD_VERSION ?= $(shell git describe --tags --always --dirty 2>/dev/null || echo "dev")
 BUILD_NUMBER ?= $(shell git rev-parse --short HEAD 2>/dev/null || echo "local")
 
-.PHONY: help build test clean run-api dev setup-db-local db-connect dependencies configure _local.hcl k8s-start k8s-stop k8s-status k8s-logs docker-build docker-push k8s-deploy migrate
+.PHONY: help build test clean run-api dev setup-db-local db-connect dependencies configure _local.hcl k8s-start k8s-stop k8s-status k8s-logs docker-build docker-push k8s-deploy migrate argocd argocd-stop
 
 # Показати допомогу
 help:
@@ -29,6 +29,8 @@ help:
 	@echo "  k8s-deploy      - Deploy to Kubernetes via ArgoCD"
 	@echo "  k8s-deploy-with-migrations - Deploy with automatic database migrations"
 	@echo "  k8s-migrate     - Run only database migrations in Kubernetes"
+	@echo "  argocd          - Start ArgoCD port forwarding and open in Chrome"
+	@echo "  argocd-stop     - Stop ArgoCD port forwarding"
 
 # Залежності
 dependencies:
@@ -38,8 +40,8 @@ dependencies:
 # Генерація конфігурації
 configure:
 	go run ./cmd/api-server configure \
-		-t ${APP_PATH}/configs/oidc-api.hcl.tmpl \
-		-o ${APP_PATH}/_local.hcl \
+		-t "./configs/oidc-api.hcl.tmpl" \
+		-o "./_local.hcl" \
 		-v ${BUILD_VERSION} \
 		-m local
 
@@ -142,13 +144,39 @@ k8s-deploy-with-migrations:
 # Запуск тільки міграцій в Kubernetes
 k8s-migrate:
 	@echo "🗃️ Running database migrations in Kubernetes..."
-	@kubectl delete job db-migration --ignore-not-found=true
+	@kubectl delete job db-migration-v2 --ignore-not-found=true
 	@kubectl apply -f k8s/configmap.yaml
 	@kubectl apply -f k8s/db-migration-job.yaml
-	@kubectl wait --for=condition=complete job/db-migration --timeout=300s
+	@kubectl wait --for=condition=complete job/db-migration-v2 --timeout=300s
 	@echo "✅ Migrations completed"
 
 # Apply migrations
 migrate:
 	@echo "🚀 Applying migrations..."
 	go run ./cmd/api-server/main.go migrate -c _local.hcl
+
+# ArgoCD команди
+# Default credentials:
+# Username: admin
+# Password: kWukYGq86UHTMrih
+argocd:
+	@echo "🚀 Starting ArgoCD port forwarding..."
+	@echo "   - ArgoCD UI: http://localhost:8080"
+	@echo ""
+	@echo "Starting port forwarding in background..."
+	@kubectl port-forward svc/argocd-server -n argocd 8080:80 > /dev/null 2>&1 &
+	@echo "Waiting for ArgoCD to be available..."
+	@sleep 5
+	@echo "Opening ArgoCD in Chrome..."
+	@google-chrome http://localhost:8080 2>/dev/null || chromium-browser http://localhost:8080 2>/dev/null || xdg-open http://localhost:8080 2>/dev/null || echo "❌ Could not open browser automatically. Please go to http://localhost:8080"
+	@echo ""
+	@echo "📝 Default login:"
+	@echo "   Username: admin"
+	@echo "   Password: kWukYGq86UHTMrih"
+	@echo ""
+	@echo "To stop port forwarding: make argocd-stop"
+
+argocd-stop:
+	@echo "🛑 Stopping ArgoCD port forwarding..."
+	@pkill -f "kubectl port-forward svc/argocd-server" || true
+	@echo "✅ ArgoCD port forwarding stopped"

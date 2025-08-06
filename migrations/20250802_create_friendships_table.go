@@ -9,8 +9,8 @@ import (
 // Friendship модель для міграції
 type Friendship struct {
 	ID        uint      `gorm:"primaryKey;autoIncrement" json:"id"`
-	UserID    string    `gorm:"type:uuid;not null;index" json:"user_id"`
-	FriendID  string    `gorm:"type:uuid;not null;index" json:"friend_id"`
+	UserID    string    `gorm:"type:text;not null;index" json:"user_id"`
+	FriendID  string    `gorm:"type:text;not null;index" json:"friend_id"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 }

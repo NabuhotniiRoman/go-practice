@@ -630,6 +630,23 @@ func RunMigrations(cfg *Config) error {
 		logrus.Info("Friendships table already exists, skipping...")
 	}
 
+	// Перевіряємо чи існує унікальний індекс
+	var indexExists bool
+	err = db.Raw("SELECT EXISTS (SELECT 1 FROM pg_indexes WHERE indexname = 'idx_friendships_user_friend')").Scan(&indexExists).Error
+	if err != nil {
+		return fmt.Errorf("failed to check if unique index exists: %w", err)
+	}
+
+	if !indexExists {
+		logrus.Info("Adding unique constraint to friendships table...")
+		if err := migrations.AddFriendshipsUniqueConstraint(db); err != nil {
+			return fmt.Errorf("failed to add unique constraint: %w", err)
+		}
+		logrus.Info("✅ Unique constraint added successfully")
+	} else {
+		logrus.Info("Unique constraint already exists, skipping...")
+	}
+
 	logrus.Info("✅ Database migrations completed successfully")
 
 	// Закриваємо з'єднання
