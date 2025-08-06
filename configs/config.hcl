@@ -79,7 +79,9 @@ security {
   cors {
     allowed_origins = [
       "https://app.example.com",
-      "https://api.example.com"
+      "https://api.example.com",
+      "http://localhost:3000",
+      "http://api.example.com:8080"
     ]
     
     
