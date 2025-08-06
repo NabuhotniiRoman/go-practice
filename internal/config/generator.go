@@ -210,7 +210,7 @@ func GetDefaultConfigData() ConfigData {
 		},
 		Security: SecurityConfigData{
 			CORS: CORSConfigData{
-				AllowedOrigins:   []string{"https://app.example.com", "https://api.example.com", "http://localhost:3000"},
+				AllowedOrigins:   []string{"https://app.example.com", "https://api.example.com", "http://localhost:3000", "http://api.example.com:8080"},
 				AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 				AllowedHeaders:   []string{"Content-Type", "Authorization", "X-Requested-With"},
 				AllowCredentials: true,

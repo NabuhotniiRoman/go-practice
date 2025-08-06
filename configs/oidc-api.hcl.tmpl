@@ -79,7 +79,8 @@ security {
   # CORS
   cors {
     allowed_origins = [
-      {{var "cors_allowed_origins" "http://localhost:3000,http://localhost:8080" true}}
+      "http://localhost:3000",
+      "http://api.example.com:8080"
     ]
     
     allowed_methods = [
